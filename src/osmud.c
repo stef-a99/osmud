@@ -54,9 +54,9 @@ int noFailOnMudValidation = 0;
 int heartBeatCycle = 0; /* how many polling cycles have passed in this interval period*/
 int heartBeatLogInterval = 720; /* Every x cycles, trigger the heartbeat log - 1 hour */
 int sleepTimeout = 5; /* how log to sleep between polling the event file - in seconds */
+int x509Mode = 0;	// 0 = DHCP, 1 = X509
 
-int
-readLine(char *buffer, int maxLineLength, int fd)
+int readLine(char *buffer, int maxLineLength, int fd)
 {
     int bytes_read;
     int k = 0;
@@ -128,7 +128,7 @@ void dumpStatsToLog()
 	logOmsGeneralMessage(OMS_INFO, OMS_SUBSYS_GENERAL, messageBuf);
 }
 
-void doProcessLoop(FD filed)
+void doProcessLoop(FD filed, int mode)
 {
 	char dhcpEventLine[MAXLINE];
 	DhcpEvent dhcpEvent;
@@ -144,38 +144,54 @@ void doProcessLoop(FD filed)
 	dhcpEvent.mudFileStorageLocation = NULL;
 	dhcpEvent.mudSigFileStorageLocation = NULL;
 
-	while (1)
-	{
-		//Dont block context switches, let the process sleep for some time
-		sleep(sleepTimeout);
+	if(mode == 0){
+		while (1)
+		{
+			//Dont block context switches, let the process sleep for some time
+			sleep(sleepTimeout);
 
-		int hhh;
-		if ((hhh = pollDhcpFile(dhcpEventLine, MAXLINE, filed))) {
-			logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Executing on dhcpmasq info");
-			if (processDhcpEventFromLog(dhcpEventLine, &dhcpEvent))
-			{
-				// There is a valid DHCP event to process
-				executeOpenMudDhcpAction(&dhcpEvent);
+			int hhh;
+			if ((hhh = pollDhcpFile(dhcpEventLine, MAXLINE, filed))) {
+				logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Executing on dhcpmasq info");
+				if (processDhcpEventFromLog(dhcpEventLine, &dhcpEvent))
+				{
+					// There is a valid DHCP event to process
+					executeOpenMudDhcpAction(&dhcpEvent);
+				}
+				else
+				{
+					logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Will not process DHCP event - invalid message format.... sleeping for 5...");
+				}
 			}
-			else
-			{
-				logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Will not process DHCP event - invalid message format.... sleeping for 5...");
+			#if 0
+					else {
+						logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Logging no data read.... sleeping for 5...");
+					}
+			#endif
+
+			// Clear variables for next iteration
+			clearDhcpEventRecord(&dhcpEvent);
+
+			if (heartBeatCycle++ > heartBeatLogInterval) {
+				dumpStatsToLog();
+				heartBeatCycle = 0;
 			}
-		}
-#if 0
-		else {
-			logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Logging no data read.... sleeping for 5...");
-		}
-#endif
-
-		// Clear variables for next iteration
-		clearDhcpEventRecord(&dhcpEvent);
-
-		if (heartBeatCycle++ > heartBeatLogInterval) {
-			dumpStatsToLog();
-			heartBeatCycle = 0;
 		}
 	}
+	else
+	{
+		// This is the x509 mode - not implemented yet
+		printf("X509 mode not implemented yet\n");
+		//Dont block context switches, let the process sleep for some time
+		sleep(sleepTimeout);
+		// curls to the iot device to get the x509 certificate
+		// verifies if the x509 certificate is trusted
+		// parses the x509 certificate
+		// gets the mud file and the mudsigner from the x509 certificate
+		// processes the mud file
+		// processes the mud signer
+	}
+		
 }
 
 void printVersion()
@@ -196,6 +212,7 @@ void printHelp()
 	printf("    -i: Do not fail processing when the MUD file p7s file does not validate\n");
 	printf("    -e <dhcpEventFile>: set the file path and name for DHCP event file\n");
 	printf("    -w <dnsWhiteListFile>: set the file path and name for DNS white-list file\n");
+	printf("    -x509: switch to x509 implementation instead of the DHCP one\n");
 	printf("    -b <MUD file storage data directory>: set the directory path for MUD file storage\n");
 	printf("    -c <osMUD config file>: set the directory path and file for osMUD startup configuration file\n");
 	printf("    -l <osMUD logfile>: set the osMUD logger path and file for system event logging.\n");
@@ -268,7 +285,7 @@ int main(int argc, char* argv[])
     char *osLogLevel = NULL;
 
 	//TODO: Need option for logFileName, logToConsole, eventFileWithPath, logLevel (INFO|WARN|DEBUG)
-    while ((opt = getopt(argc, argv, "vidhkx:e:w:b:c:l:m:")) != -1) {
+    while ((opt = getopt(argc, argv, "vidhkx:e:w:x509:b:c:l:m:")) != -1) {
         switch (opt) {
         case 'd':       debugMode = 1;
         				break;
@@ -287,6 +304,9 @@ int main(int argc, char* argv[])
         case 'e': 		dhcpEventFile = copystring(optarg);
 						break;
 		case 'w': 		dnsWhiteListFile = copystring(optarg);
+						break;
+		case 'x509': 	
+						x509Mode = 1;
 						break;
 		case 'b': 		mudFileDataDirectory = copystring(optarg);
 						break;
@@ -380,7 +400,7 @@ int main(int argc, char* argv[])
 	close(STDOUT_FILENO);
 	close(STDERR_FILENO);
 
-	doProcessLoop(filed);
+	doProcessLoop(filed, x509Mode);
 
 	close(filed);
 	fclose(logger);
