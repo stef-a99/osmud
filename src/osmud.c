@@ -218,7 +218,7 @@ void printHelp()
 	printf("    -i: Do not fail processing when the MUD file p7s file does not validate\n");
 	printf("    -e <dhcpEventFile>: set the file path and name for DHCP event file\n");
 	printf("    -w <dnsWhiteListFile>: set the file path and name for DNS white-list file\n");
-	printf("    -x509: switch to x509 implementation instead of the DHCP one\n");
+	printf("    -C: switch to x509 implementation instead of the DHCP one\n");
 	printf("    -b <MUD file storage data directory>: set the directory path for MUD file storage\n");
 	printf("    -c <osMUD config file>: set the directory path and file for osMUD startup configuration file\n");
 	printf("    -l <osMUD logfile>: set the osMUD logger path and file for system event logging.\n");
