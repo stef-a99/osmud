@@ -364,6 +364,7 @@ int main(int argc, char* argv[])
     if ((debugMode) || (foregroundMode))
     {
   		printf("Running OSMUD in the foreground... <cntrl-c> to terminate\n");
+		printf("x509Mode: %d\n", x509Mode);
     }
     else
     {
