@@ -182,6 +182,7 @@ void doProcessLoop(FD filed, int mode)
 	{
 		// This is the x509 mode - not implemented yet
 		printf("X509 mode not implemented yet\n");
+		logOmsGeneralMessage(OMS_INFO, OMS_SUBSYS_GENERAL, "X509 mode not implemented yet");
 		//Dont block context switches, let the process sleep for some time
 		sleep(sleepTimeout);
 		// curls to the iot device to get the x509 certificate
