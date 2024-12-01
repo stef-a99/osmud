@@ -291,7 +291,7 @@ int main(int argc, char* argv[])
     char *osLogLevel = NULL;
 
 	//TODO: Need option for logFileName, logToConsole, eventFileWithPath, logLevel (INFO|WARN|DEBUG)
-    while ((opt = getopt(argc, argv, "vidhkx:e:w:x509:b:c:l:m:")) != -1) {
+    while ((opt = getopt(argc, argv, "vidhkxC:e:w:b:c:l:m:")) != -1) {
         switch (opt) {
         case 'd':       debugMode = 1;
         				break;
@@ -311,8 +311,7 @@ int main(int argc, char* argv[])
 						break;
 		case 'w': 		dnsWhiteListFile = copystring(optarg);
 						break;
-		case 'x509': 	
-						x509Mode = 1;
+		case 'C': 		x509Mode = 1;
 						break;
 		case 'b': 		mudFileDataDirectory = copystring(optarg);
 						break;
