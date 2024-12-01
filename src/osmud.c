@@ -185,6 +185,7 @@ void doProcessLoop(FD filed, int mode)
 		//Dont block context switches, let the process sleep for some time
 		sleep(sleepTimeout);
 		// curls to the iot device to get the x509 certificate
+		// Contact the IoT device to retrieve its certificate
 		// verifies if the x509 certificate is trusted
 		// parses the x509 certificate
 		// gets the mud file and the mudsigner from the x509 certificate
@@ -193,6 +194,10 @@ void doProcessLoop(FD filed, int mode)
 	}
 		
 }
+
+// x509 stuff start
+
+// X509 stuff end
 
 void printVersion()
 {
