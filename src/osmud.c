@@ -144,7 +144,6 @@ void doProcessLoop(FD filed, int mode)
 	dhcpEvent.mudFileStorageLocation = NULL;
 	dhcpEvent.mudSigFileStorageLocation = NULL;
 
-	if(mode == 0){
 		while (1)
 		{
 			//Dont block context switches, let the process sleep for some time
@@ -156,7 +155,7 @@ void doProcessLoop(FD filed, int mode)
 				if (processDhcpEventFromLog(dhcpEventLine, &dhcpEvent))
 				{
 					// There is a valid DHCP event to process
-					executeOpenMudDhcpAction(&dhcpEvent);
+					executeOpenMudDhcpAction(&dhcpEvent, mode);
 				}
 				else
 				{
@@ -177,22 +176,6 @@ void doProcessLoop(FD filed, int mode)
 				heartBeatCycle = 0;
 			}
 		}
-	}
-	else
-	{
-		// This is the x509 mode - not implemented yet
-		printf("X509 mode not implemented yet\n");
-		logOmsGeneralMessage(OMS_INFO, OMS_SUBSYS_GENERAL, "X509 mode not implemented yet");
-		//Dont block context switches, let the process sleep for some time
-		sleep(sleepTimeout);
-		// curls to the iot device to get the x509 certificate
-		// Contact the IoT device to retrieve its certificate
-		// verifies if the x509 certificate is trusted
-		// parses the x509 certificate
-		// gets the mud file and the mudsigner from the x509 certificate
-		// processes the mud file
-		// processes the mud signer
-	}
 		
 }
 

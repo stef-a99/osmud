@@ -118,8 +118,7 @@ getDhcpEventActionClass(char *dhcpAction)
 	return actionClass;
 }
 
-int
-processDhcpEventFromLog(char *logMessage, DhcpEvent *dhcpEvent)
+int processDhcpEventFromLog(char *logMessage, DhcpEvent *dhcpEvent)
 {
 	/*
 	 * Format: Fields are PIPE delimited! This matches up to the "detect_new_devices.sh" script
