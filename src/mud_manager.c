@@ -353,7 +353,7 @@ void executeNewDhcpAction(DhcpEvent *dhcpEvent, int mode)
 				rollbackFirewallConfiguration();
 			
 			// Starts the x509 implementation
-
+			x509_routine();
 		}
 			
 	}
@@ -395,10 +395,10 @@ void executeOpenMudDhcpAction(DhcpEvent *dhcpEvent, int mode)
 						executeNewDhcpAction(dhcpEvent, mode);
 						break;
 			case OLD: dhcpOldEventCount++;
-						executeOldDhcpAction(dhcpEvent, mode);
+						executeOldDhcpAction(dhcpEvent);
 						break;
 			case DEL: dhcpDeleteEventCount++;
-						executeDelDhcpAction(dhcpEvent, mode);
+						executeDelDhcpAction(dhcpEvent);
 						break;
 			default:
 				dhcpErrorEventCount++;
@@ -501,8 +501,9 @@ char *clean_string(char *str){
 
 }
 
-void extract_mud_info(char *x509_cert) {
+char *extract_mud_info(char *x509_cert) {
     // Executes the command to retrieve the MUD URL from the certificate
+	char *combined = (char *)malloc(strlen(mudurl) + strlen(mudsigner) + 2); // +2 for comma and null terminator
     char command[512];
     snprintf(command, sizeof(command), "openssl x509 -in %s -noout -text | grep -A1 %s | tail -n1 | awk '{$1=$1;print}'", x509_cert, mudurl_extension);
 
@@ -525,17 +526,29 @@ void extract_mud_info(char *x509_cert) {
         mudsigner = clean_string(mudsigner);
         printf("Extracted MUD signer: %s\n", mudsigner);
     }
+	
+	;
+	if (mudurl != NULL && mudsigner != NULL) {
+		if (combined != NULL) {
+			sprintf(combined, "%s,%s", mudurl, mudsigner);
+		} else {
+			fprintf(stderr, "Memory allocation failed for combined string.\n");
+			combined = NULL;
+		}
+	}
      // Free allocated memory
     free(mudurl);
     free(mudsigner); 
+
+	return combined;
 }
 
 void *manage_certificate(void *msg) {
     char *certificate = (char *)msg;
 
     // Write the certificate to a file
-    char *filename = strrchr(topic, '/') + 1;
-    filename = strcat(filename, ".pem");
+    char *subtopic = strrchr(topic, '/') + 1;
+    filename = strcat(subtopic, ".pem");
     FILE *file = fopen(filename, "w");
     if (file == NULL) {
         fprintf(stderr, "Error: Unable to open file %s\n", filename);
@@ -546,6 +559,7 @@ void *manage_certificate(void *msg) {
 
     // Checks the chain of trust of the certificate
     char command[512];
+	char *res = NULL;
     bool valid = false;
     snprintf(command, sizeof(command), "openssl verify -CAfile /etc/ssl/certs/ca-certificates.crt %s", filename);
     FILE *fp = popen(command, "r");
@@ -569,7 +583,19 @@ void *manage_certificate(void *msg) {
 
     if (valid) {
         printf("Certificate is valid.\n");
-        extract_mud_info(filename);
+        res = extract_mud_info(filename);
+		if (res != NULL) {
+			char *mudurl = strtok(res, ",");
+			char *mudsigner = strtok(NULL, ",");
+
+			if (mudurl != NULL && mudsigner != NULL) {
+			printf("MUD URL: %s\n", mudurl);
+			printf("MUD Signer: %s\n", mudsigner);
+			// Further processing with mudurl and mudsigner
+			}
+
+			free(res);
+		}
     } else {
         printf("Certificate is not valid.\n");
     }
