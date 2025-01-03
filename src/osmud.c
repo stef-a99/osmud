@@ -147,6 +147,7 @@ void doProcessLoop(FD filed, int mode)
 		while (1)
 		{
 			int hhh;
+			int actionResult, retval = 0;
 			//Dont block context switches, let the process sleep for some time
 			sleep(sleepTimeout);
 			if(mode == 0){
@@ -170,7 +171,12 @@ void doProcessLoop(FD filed, int mode)
 
 			}
 			else{
-				executeOpenMudDhcpAction(&dhcpEvent, 0);
+				// Starts the x509 implementation
+				actionResult = x509_routine(dhcpEvent);
+				if (actionResult) {
+					logOmsGeneralMessage(OMS_CRIT, OMS_SUBSYS_DEVICE_INTERFACE, "Problems with x509 routine.");
+					retval = 1;
+				}
 			}
 			
 			// Clear variables for next iteration
