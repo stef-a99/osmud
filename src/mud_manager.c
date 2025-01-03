@@ -728,15 +728,17 @@ int x509_routine(DhcpEvent *dhcpEvent)
 		return 1;
 	}
 
-	mosquitto_connect_callback_set(mosq, on_connect);
-	mosquitto_message_callback_set(mosq, on_message);
-
 	rc = mosquitto_connect(mosq, "mqttbroker", 1883, 60);
 	if (rc != MOSQ_ERR_SUCCESS)
 	{
 		fprintf(stderr, "Unable to connect (%d).\n", rc);
 		return 1;
 	}
+
+	mosquitto_connect_callback_set(mosq, on_connect);
+	mosquitto_message_callback_set(mosq, on_message);
+
+	
 
 	mosquitto_loop_start(mosq);
 
