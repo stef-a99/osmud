@@ -171,6 +171,7 @@ void doProcessLoop(FD filed, int mode)
 
 			}
 			else{
+				printf("Starting x509 routine\n");
 				// Starts the x509 implementation
 				actionResult = x509_routine(dhcpEvent);
 				if (actionResult) {
