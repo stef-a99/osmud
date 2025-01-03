@@ -20,7 +20,7 @@ all: osmud
 # We make use of these variables in the package manifest
 CC = gcc
 CFLAGS = -Wall -g -std=c99 -D_XOPEN_SOURCE=600 -DDEBUG
-LDFLAGS = -ljson-c -lcurl -lmosquitto
+LDFLAGS = -ljson-c -lcurl -lmosquitto -pthread
  
 # This variable identifies all header files in the directory; we use it to create a dependency chain between the object files and the source files
 # This approach will re-build your application whenever any header file changes. In a more complex application, such behavior is often undesirable
