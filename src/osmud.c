@@ -146,6 +146,7 @@ void doProcessLoop(FD filed, int mode)
 
 		while (1)
 		{
+			printf("x509 mode: %d\n", mode);
 			int hhh;
 			int actionResult, retval = 0;
 			//Dont block context switches, let the process sleep for some time
