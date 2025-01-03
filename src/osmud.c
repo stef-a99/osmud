@@ -182,10 +182,10 @@ void doProcessLoop(FD filed, int mode)
 	else
 	{
 		// This is the x509 mode - not implemented yet
-		printf("X509 mode not implemented yet\n");
+		//printf("X509 mode not implemented yet\n");
 		
 		//Dont block context switches, let the process sleep for some time
-		sleep(sleepTimeout);
+		//sleep(sleepTimeout);
 
 		// calls the x509 routine
 		x509_routine();
@@ -414,7 +414,7 @@ int main(int argc, char* argv[])
 	close(STDIN_FILENO);
 	close(STDOUT_FILENO);
 	close(STDERR_FILENO);
-	
+
 	close(filed);
 	fclose(logger);
 	return (0);
