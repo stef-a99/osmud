@@ -33,7 +33,7 @@
 #include "version.h"
 #include "x509_mode.h"
 
-#define MAXLINE 2048
+#define MAXLINE 1024
 
 /* Default locations for osMUD resources based on OpenWRT */
 #define MUD_FILE_DIRECTORY "/var/state/osmud/mudfiles"
@@ -131,23 +131,23 @@ void dumpStatsToLog()
 
 void doProcessLoop(FD filed, int mode)
 {
-	
+	char dhcpEventLine[MAXLINE];
+	DhcpEvent dhcpEvent;
+	dhcpEvent.action = NONE;
+	dhcpEvent.date = NULL;
+	dhcpEvent.macAddress = NULL;
+	dhcpEvent.ipAddress = NULL;
+	dhcpEvent.hostName = NULL;
+	dhcpEvent.dhcpRequestFlags = NULL;
+	dhcpEvent.dhcpVendor = NULL;
+	dhcpEvent.mudFileURL = NULL;
+	dhcpEvent.mudSigURL = NULL;
+	dhcpEvent.mudFileStorageLocation = NULL;
+	dhcpEvent.mudSigFileStorageLocation = NULL;
 	
 
 	if(mode == 0){
-		char dhcpEventLine[MAXLINE];
-		DhcpEvent dhcpEvent;
-		dhcpEvent.action = NONE;
-		dhcpEvent.date = NULL;
-		dhcpEvent.macAddress = NULL;
-		dhcpEvent.ipAddress = NULL;
-		dhcpEvent.hostName = NULL;
-		dhcpEvent.dhcpRequestFlags = NULL;
-		dhcpEvent.dhcpVendor = NULL;
-		dhcpEvent.mudFileURL = NULL;
-		dhcpEvent.mudSigURL = NULL;
-		dhcpEvent.mudFileStorageLocation = NULL;
-		dhcpEvent.mudSigFileStorageLocation = NULL;
+		
 
 		while (1)
 		{
@@ -157,7 +157,7 @@ void doProcessLoop(FD filed, int mode)
 			int hhh;
 			if ((hhh = pollDhcpFile(dhcpEventLine, MAXLINE, filed))) {
 				logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Executing on dhcpmasq info");
-				if (processDhcpEventFromLog(dhcpEventLine, &dhcpEvent))
+				if (processDhcpEventFromLog(dhcpEventLine, &dhcpEvent, mode))
 				{
 					// There is a valid DHCP event to process
 					executeOpenMudDhcpAction(&dhcpEvent);
@@ -184,35 +184,11 @@ void doProcessLoop(FD filed, int mode)
 	}
 	else
 	{
-		char x509EventLine[MAXLINE];
-		X509Event x509Event;
-		x509Event.action = NONE;
-		x509Event.date = NULL;
-		x509Event.macAddress = NULL;
-		x509Event.ipAddress = NULL;
-		x509Event.hostName = NULL;
-		x509Event.dhcpRequestFlags = NULL;
-		x509Event.dhcpVendor = NULL;
-		x509Event.mudFileURL = NULL;
-		x509Event.mudSigURL = NULL;
-		x509Event.mudFileStorageLocation = NULL;
-		x509Event.mudSigFileStorageLocation = NULL;
-		x509Event.mudSigner = NULL;
-		x509Event.message = NULL;
 		// This is the x509 mode 
 		// calls the x509 routine
-		int hhh;
-		if ((hhh = pollDhcpFile(x509EventLine, MAXLINE, filed))) {
-			logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Executing on x509 info");
-			if (processX509EventFromLog(x509EventLine, &x509Event))
-			{
-				// There is a valid X509 event to process
-				int res = x509_routine(&x509Event);
-			}
+		if (processDhcpEventFromLog(dhcpEventLine, &dhcpEvent, mode)){
+			x509_routine();
 		}
-				
-		
-		
 		
 	}
 		

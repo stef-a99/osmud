@@ -5,7 +5,6 @@
 #include <pthread.h>
 #include "mud_manager.h"
 #include "mudparser.h"
-#include "dhcp_event.h"
 
 char message_buffer[256];
 pthread_mutex_t message_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -105,7 +104,7 @@ char** extract_info(char *x509_cert) {
     return result;
 }
 
-void *manage_certificate(void *msg, X509Event *x509Event) {
+void *manage_certificate(void *msg) {
     char *certificate = (char *)msg;
     char **result = (char **)malloc(2 * sizeof(char *));
     // Write the certificate to a file
@@ -147,11 +146,7 @@ void *manage_certificate(void *msg, X509Event *x509Event) {
         result = extract_info(filename);
         if (result != NULL) {
             printf("MUD URL: %s\n", result[0]);
-            printf("MUD Signer: %s\n", result[1]);
-            x509Event->mudFileURL = result[0];
-            x509Event->mudSigner = result[1];
-
-            executeOpenMudx509Action(&x509Event);
+            printf("MUD Signer: %s\n", result[1]);   
         }
     } else {
         printf("Certificate is not valid.\n");
@@ -159,28 +154,24 @@ void *manage_certificate(void *msg, X509Event *x509Event) {
 }
 
 
-void on_message(struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg, X509Event *x509Event) {
+void on_message(struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg) {
     pthread_t thread;
     char *message = strdup((char *)msg->payload);
     if (message == NULL) {
         fprintf(stderr, "Error: Out of memory.\n");
         return;
     }
-    
-    x509Event->message = message;
 
     topic = strdup(msg->topic);
     printf("Message arrived on topic: %s\n", topic);
-    pthread_create(&thread, NULL, manage_certificate, &x509Event);
+    pthread_create(&thread, NULL, manage_certificate, message);
     pthread_detach(thread);
 }
 
 
-int x509_routine(X509Event *x509Event) {
+int x509_routine() {
     struct mosquitto *mosq;
     int rc;
-
-
 
     mosquitto_lib_init();
 
