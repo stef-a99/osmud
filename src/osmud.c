@@ -33,7 +33,7 @@
 #include "version.h"
 #include "x509_mode.h"
 
-#define MAXLINE 1024
+#define MAXLINE 2048
 
 /* Default locations for osMUD resources based on OpenWRT */
 #define MUD_FILE_DIRECTORY "/var/state/osmud/mudfiles"
@@ -131,21 +131,24 @@ void dumpStatsToLog()
 
 void doProcessLoop(FD filed, int mode)
 {
-	char dhcpEventLine[MAXLINE];
-	DhcpEvent dhcpEvent;
-	dhcpEvent.action = NONE;
-	dhcpEvent.date = NULL;
-	dhcpEvent.macAddress = NULL;
-	dhcpEvent.ipAddress = NULL;
-	dhcpEvent.hostName = NULL;
-	dhcpEvent.dhcpRequestFlags = NULL;
-	dhcpEvent.dhcpVendor = NULL;
-	dhcpEvent.mudFileURL = NULL;
-	dhcpEvent.mudSigURL = NULL;
-	dhcpEvent.mudFileStorageLocation = NULL;
-	dhcpEvent.mudSigFileStorageLocation = NULL;
+	
+	
 
 	if(mode == 0){
+		char dhcpEventLine[MAXLINE];
+		DhcpEvent dhcpEvent;
+		dhcpEvent.action = NONE;
+		dhcpEvent.date = NULL;
+		dhcpEvent.macAddress = NULL;
+		dhcpEvent.ipAddress = NULL;
+		dhcpEvent.hostName = NULL;
+		dhcpEvent.dhcpRequestFlags = NULL;
+		dhcpEvent.dhcpVendor = NULL;
+		dhcpEvent.mudFileURL = NULL;
+		dhcpEvent.mudSigURL = NULL;
+		dhcpEvent.mudFileStorageLocation = NULL;
+		dhcpEvent.mudSigFileStorageLocation = NULL;
+
 		while (1)
 		{
 			//Dont block context switches, let the process sleep for some time
@@ -181,29 +184,40 @@ void doProcessLoop(FD filed, int mode)
 	}
 	else
 	{
-		// This is the x509 mode - not implemented yet
-		//printf("X509 mode not implemented yet\n");
-		
-		//Dont block context switches, let the process sleep for some time
-		//sleep(sleepTimeout);
-
+		char x509EventLine[MAXLINE];
+		X509Event x509Event;
+		x509Event.action = NONE;
+		x509Event.date = NULL;
+		x509Event.macAddress = NULL;
+		x509Event.ipAddress = NULL;
+		x509Event.hostName = NULL;
+		x509Event.dhcpRequestFlags = NULL;
+		x509Event.dhcpVendor = NULL;
+		x509Event.mudFileURL = NULL;
+		x509Event.mudSigURL = NULL;
+		x509Event.mudFileStorageLocation = NULL;
+		x509Event.mudSigFileStorageLocation = NULL;
+		x509Event.mudSigner = NULL;
+		x509Event.message = NULL;
+		// This is the x509 mode 
 		// calls the x509 routine
-		x509_routine();
-
-		// curls to the iot device to get the x509 certificate
-		// Contact the IoT device to retrieve its certificate
-		// verifies if the x509 certificate is trusted
-		// parses the x509 certificate
-		// gets the mud file and the mudsigner from the x509 certificate
-		// processes the mud file
-		// processes the mud signer
+		int hhh;
+		if ((hhh = pollDhcpFile(x509EventLine, MAXLINE, filed))) {
+			logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Executing on x509 info");
+			if (processX509EventFromLog(x509EventLine, &x509Event))
+			{
+				// There is a valid X509 event to process
+				int res = x509_routine(&x509Event);
+			}
+		}
+				
+		
+		
+		
 	}
 		
 }
 
-// x509 stuff start
-
-// X509 stuff end
 
 void printVersion()
 {

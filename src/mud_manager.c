@@ -344,9 +344,93 @@ void executeDelDhcpAction(DhcpEvent *dhcpEvent)
 	}
 }
 
+void executeOpenMudx509Action(X509Event *x509Event)
+{
+	if (x509Event) {
+		switch (x509Event->action) {
+			case NEW: dhcpNewEventCount++;
+						executeNewx509pAction(x509Event);
+						break;
+			case OLD: dhcpOldEventCount++;
+						executeOldx509pAction(x509Event);
+						break;
+			case DEL: dhcpDeleteEventCount++;
+						executeDelx509pAction(x509Event);
+						break;
+			default:
+				dhcpErrorEventCount++;
+				logOmsGeneralMessage(OMS_ERROR, OMS_SUBSYS_GENERAL, "Bad dhcp event action code - no action taken");
+		}
+	}
+}
 
-void
-executeOpenMudDhcpAction(DhcpEvent *dhcpEvent)
+void executeNewx509pAction(X509Event *x509Event){
+	char logMsgBuf[4096];
+	buildX509EventContext(logMsgBuf, "NEW", x509Event);
+	logOmsGeneralMessage(OMS_INFO, OMS_SUBSYS_GENERAL, logMsgBuf);
+
+	if ((x509Event) && (x509Event->mudFileURL))
+	{
+		x509Event->mudSigURL = createSigUrlFromMudUrl(x509Event->mudFileURL);
+		x509Event->mudFileStorageLocation = createStorageLocation(x509Event->mudFileURL);
+		x509Event->mudSigFileStorageLocation = createStorageLocation(x509Event->mudSigURL);
+
+		/* We are processing a MUD aware device. Go to the MUD file server and get the usage description */
+		/* non-zero return code indicates error during communications */
+		/* Mud files and signature files are stored in their computed storage locations for future reference */
+		if (!getOpenMudFile(x509Event->mudFileURL, x509Event->mudFileStorageLocation))
+		{
+			/* For debugging purposes only, allow the p7s verification to be optional when the "-i" option
+			 * is provided. This feature will be removed from a future release and is only provided now
+			 * until certificates compatible with OPENSSL CMS VERIFY commands are in ready use.
+			 */
+			if ((!getOpenMudFile(x509Event->mudSigURL, x509Event->mudSigFileStorageLocation))
+				|| (noFailOnMudValidation))
+			{
+
+				logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_MUD_FILE, "IN ****NEW**** MUD and SIG FILE RETRIEVED!!!");
+
+				if ((validateMudFileWithSig(x509Event) == VALID_MUD_FILE_SIG)
+					|| (noFailOnMudValidation))
+				{
+					/*
+					 * All files downloaded and signature valid.
+					 * CALL INTERFACE TO CARRY OUT MUD ACTION HERE
+					 */
+					executeMudWithDhcpContext(x509Event);
+					installMudDbDeviceEntry(mudFileDataDirectory, x509Event->ipAddress, x509Event->macAddress,
+							x509Event->mudFileURL, x509Event->mudFileStorageLocation, x509Event->hostName);
+				}
+				else
+				{
+					logOmsGeneralMessage(OMS_ERROR, OMS_SUBSYS_MUD_FILE, "ERROR: ****NEW**** BAD SIGNATURE - FAILED VALIDATION!!!");
+				}
+			}
+			else
+			{
+				logOmsGeneralMessage(OMS_ERROR, OMS_SUBSYS_MUD_FILE, "ERROR: ****NEW**** NO SIG FILE RETRIEVED!!!");
+			}
+		}
+		else
+		{
+			logOmsGeneralMessage(OMS_ERROR, OMS_SUBSYS_MUD_FILE, "ERROR: ****NEW**** NO MUD FILE RETRIEVED!!!");
+		}
+	}
+	else
+	{
+		/* This is a legacy non-MUD aware device. */
+		logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_MUD_FILE, "IN ****NEW**** LEGACY DEVICE -- no mud file declared.");
+		doDhcpLegacyAction(x509Event);
+		installMudDbDeviceEntry(mudFileDataDirectory, x509Event->ipAddress, x509Event->macAddress, NULL, NULL, x509Event->hostName);
+	}
+}
+
+
+
+
+
+
+void executeOpenMudDhcpAction(DhcpEvent *dhcpEvent)
 {
 	if (dhcpEvent) {
 		switch (dhcpEvent->action) {

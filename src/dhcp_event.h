@@ -33,6 +33,24 @@ typedef struct {
 	char *mudSigFileStorageLocation;
 } DhcpEvent;
 
+typedef struct {
+	char *date;
+	DHCP_ACTIONS action; /* NEW | OLD | DEL */
+	char *lanDevice;
+	char *macAddress;
+	char *ipAddress;
+	char *hostName;
+	char *dhcpRequestFlags;
+	char *dhcpVendor;
+	char *mudFileURL;
+	char *mudSigURL;
+	char *mudFileStorageLocation;
+	char *mudSigFileStorageLocation;
+	char *mudSigner;
+	char *message;
+} X509Event;
+
+
 void executeOpenMudDhcpAction(DhcpEvent *event);
 const char* getDhcpEventText(DHCP_ACTIONS actionClass);
 DHCP_ACTIONS getDhcpEventActionClass(char *);
@@ -43,6 +61,6 @@ char *createStorageLocation(char *mudURL);
 int validateMudFileWithSig(DhcpEvent *dhcpEvent);
 void doDhcpLegacyAction(DhcpEvent *dhcpEvent);
 void buildDhcpEventContext(char *logMsgBuf, char *action, DhcpEvent *dhcpEvent);
-
+void buildX509EventContext(char *logMsgBuf, char *action, X509Event *x509Event);
 
 #endif

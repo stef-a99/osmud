@@ -51,6 +51,8 @@ int removeMudDbDeviceEntry(char *mudDbDir, char *ipAddr, char *macAddress);
 int verifyCmsSignature(char *mudFileLocation, char *mudSigFileLocation);
 int commitAndApplyFirewallRules();
 int rollbackFirewallConfiguration();
+void executeOpenMudx509Action(X509Event *event);
+
 /* END Device Specific Prototypes */
 
 

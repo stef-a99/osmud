@@ -36,6 +36,11 @@ void buildDhcpEventContext(char *logMsgBuf, char *action, DhcpEvent *dhcpEvent)
 	sprintf(logMsgBuf, "%s Device Action: IP: %s, MAC: %s", action, dhcpEvent->ipAddress, dhcpEvent->macAddress);
 }
 
+void buildX509EventContext(char *logMsgBuf, char *action, X509Event *x509Event)
+{
+	sprintf(logMsgBuf, "%s Device Action: IP: %s, MAC: %s", action, x509Event->ipAddress, x509Event->macAddress);
+}
+
 /*
  * This will create a filesystem based storage location based on the mudURL argument
  * The fileName will be pulled off the end of the URL and concatinated with the default path
@@ -86,8 +91,7 @@ int validateMudFileWithSig(DhcpEvent *dhcpEvent)
 	return validSig;
 }
 
-const char*
-getDhcpEventText(DHCP_ACTIONS actionClass)
+const char* getDhcpEventText(DHCP_ACTIONS actionClass)
 {
    switch (actionClass)
    {
@@ -98,8 +102,7 @@ getDhcpEventText(DHCP_ACTIONS actionClass)
    }
 }
 
-DHCP_ACTIONS
-getDhcpEventActionClass(char *dhcpAction)
+DHCP_ACTIONS getDhcpEventActionClass(char *dhcpAction)
 {
 	DHCP_ACTIONS actionClass = NONE;
 
@@ -118,8 +121,63 @@ getDhcpEventActionClass(char *dhcpAction)
 	return actionClass;
 }
 
-int
-processDhcpEventFromLog(char *logMessage, DhcpEvent *dhcpEvent)
+int processX509EventFromLog(char *logMessage, X509Event *X509Event){
+	/*
+	 * Format: Fields are PIPE delimited! This matches up to the "detect_new_devices.sh" script
+			Field1: Date
+			Field2: Action [NEW|OLD|DEL]
+			Field3: Lan device where activated
+			Field 4: DHCP options flag - info only
+			Field 5: DHCP flags provided for fingerprinting or "-" if not available
+			Field 6: MUD flag - info only
+			Field 7: MUD url or "-" if not available
+			Field 8: DHCP Vendor Class (Option 43)
+			Field9: MAC Address
+			Field10: IP Address provided by DHCP server
+			Field11: Host name *IF* Available
+			Field12: MUD Signer
+	 */
+
+	char *array[20]; /* really should be the count of spaces in the logMessage+1 */
+	int i=0;
+	char *tmpStr, *curToken;
+	int retval = 1;
+
+	if (logMessage) {
+		tmpStr = copystring(logMessage);
+
+		curToken = strtok(tmpStr, "|\t\n\r");
+		while (1) {
+			array[i++] = copystring(curToken);
+			if (!curToken)
+				break;
+			curToken = strtok(NULL, "|\t\n\r");
+		}
+		safe_free(tmpStr);
+
+		X509Event->action = getDhcpEventActionClass(array[1]);
+		X509Event->date = array[0];
+		X509Event->lanDevice = array[2];
+		X509Event->dhcpRequestFlags = array[4];
+		X509Event->dhcpVendor = array[7];
+		X509Event->macAddress = array[8];
+		X509Event->ipAddress = array[9];
+		X509Event->hostName = array[10];
+
+		/* The MUD URL isn't present in the DHCP Event with x509 implementation*/
+		X509Event->mudFileURL = NULL;
+		X509Event->mudSigner = NULL;
+		X509Event->message = NULL;
+
+	} else {
+		retval = 0; //error process log message line
+	}
+
+	return retval;
+}
+
+
+int processDhcpEventFromLog(char *logMessage, DhcpEvent *dhcpEvent)
 {
 	/*
 	 * Format: Fields are PIPE delimited! This matches up to the "detect_new_devices.sh" script
