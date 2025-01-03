@@ -70,7 +70,7 @@ char *clean_string(char *str) {
 char *extract_info(char *x509_cert) {
     // Executes the command to retrieve the MUD URL from the certificate
     char command[512];
-    char *combined_info = NULL:
+    char *combined_info = NULL;
     snprintf(command, sizeof(command), "openssl x509 -in %s -noout -text | grep -A1 %s | tail -n1 | awk '{$1=$1;print}'", x509_cert, mudurl_extension);
 
     // Stores the MUD URL in a variable
