@@ -31,6 +31,7 @@
 #include "dhcp_event.h"
 #include "mud_manager.h"
 #include "version.h"
+#include "x509_mode.h"
 
 #define MAXLINE 1024
 
@@ -182,9 +183,13 @@ void doProcessLoop(FD filed, int mode)
 	{
 		// This is the x509 mode - not implemented yet
 		printf("X509 mode not implemented yet\n");
-		logOmsGeneralMessage(OMS_INFO, OMS_SUBSYS_GENERAL, "X509 mode not implemented yet");
+		
 		//Dont block context switches, let the process sleep for some time
 		sleep(sleepTimeout);
+
+		// calls the x509 routine
+		int result = x509_routine();
+
 		// curls to the iot device to get the x509 certificate
 		// Contact the IoT device to retrieve its certificate
 		// verifies if the x509 certificate is trusted
