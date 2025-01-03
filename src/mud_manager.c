@@ -266,6 +266,7 @@ int executeMudWithDhcpContext(DhcpEvent *dhcpEvent)
  */
 void executeNewDhcpAction(DhcpEvent *dhcpEvent, int mode)
 {
+	int actionResult, retval = 0;
 	char logMsgBuf[4096];
 	buildDhcpEventContext(logMsgBuf, "NEW", dhcpEvent);
 	logOmsGeneralMessage(OMS_INFO, OMS_SUBSYS_GENERAL, logMsgBuf);
@@ -503,7 +504,7 @@ char *clean_string(char *str){
 
 char *extract_mud_info(char *x509_cert) {
     // Executes the command to retrieve the MUD URL from the certificate
-	char *combined = (char *)malloc(strlen(mudurl) + strlen(mudsigner) + 2); // +2 for comma and null terminator
+	char *combined = (char*)malloc(256);
     char command[512];
     snprintf(command, sizeof(command), "openssl x509 -in %s -noout -text | grep -A1 %s | tail -n1 | awk '{$1=$1;print}'", x509_cert, mudurl_extension);
 
@@ -527,7 +528,9 @@ char *extract_mud_info(char *x509_cert) {
         printf("Extracted MUD signer: %s\n", mudsigner);
     }
 	
-	;
+	// contatenate mudurl and mudsigner, separated by a comma
+	combined = (char*)malloc(strlen(mudurl) + strlen(mudsigner) + 2);
+	
 	if (mudurl != NULL && mudsigner != NULL) {
 		if (combined != NULL) {
 			sprintf(combined, "%s,%s", mudurl, mudsigner);
@@ -548,7 +551,7 @@ void *manage_certificate(void *msg) {
 
     // Write the certificate to a file
     char *subtopic = strrchr(topic, '/') + 1;
-    filename = strcat(subtopic, ".pem");
+    char *filename = strcat(subtopic, ".pem");
     FILE *file = fopen(filename, "w");
     if (file == NULL) {
         fprintf(stderr, "Error: Unable to open file %s\n", filename);
