@@ -92,6 +92,8 @@ void extract_info(char *x509_cert) {
         printf("Extracted MUD signer: %s\n", mudsigner);
     }
 
+    printf("Retrieving MUD file...\n");
+    printf("MUD URL: %s\n", mudurl);
     rescurl = getOpenMudFile(mudurl, "mudfile.json");
 
      // Free allocated memory
