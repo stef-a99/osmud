@@ -112,13 +112,19 @@ char *extract_info(char *x509_cert) {
 
 void *manage_certificate(void *msg) {
     char *certificate = (char *)msg;
+    char *subtopic = strrchr(topic, '/') + 1; 
+    char *filename = malloc(strlen(subtopic) + 5); // Allocate memory for filename
+    if (filename == NULL) {
+        fprintf(stderr, "Error: Out of memory.\n");
+        return NULL;
+    }
+    strcpy(filename, subtopic); 
+    strcat(filename, ".pem"); 
 
-    // Write the certificate to a file
-    char *subtopic = strrchr(topic, '/') + 1;
-    char *filename = strcat(subtopic, ".pem");
     FILE *file = fopen(filename, "w");
     if (file == NULL) {
         fprintf(stderr, "Error: Unable to open file %s\n", filename);
+        free(filename); // Free allocated memory
         return NULL;
     }
     fprintf(file, "%s", certificate);
@@ -152,27 +158,50 @@ void *manage_certificate(void *msg) {
     if (valid) {
         printf("Certificate is valid.\n");
         combined_info = extract_info(filename);
-        // Retrieve the MUD file
-        char *mudurl = strtok(combined_info, ",");
-        char *mudsigner = strtok(NULL, ",");
-
-        if (mudurl != NULL && mudsigner != NULL) {
-            printf("MUD URL: %s\n", mudurl);
-            printf("MUD Signer: %s\n", mudsigner);
-        } else {
-            printf("Error: Failed to parse combined MUD URL and signer.\n");
-        }
-
+        int rescurl = 0;
 
         if (combined_info != NULL) {
-            printf("MUD URL and signer extracted successfully.\n");
-            retval = getOpenMudFile(mudurl, subtopic);
+            // Allocate memory for combined MUD URL and signer
+            size_t combined_info_size = strlen(combined_info) + 2; 
+            char *mudurl = malloc(combined_info_size);
+            char *mudsigner = malloc(combined_info_size);
+            if (mudurl == NULL || mudsigner == NULL) {
+                fprintf(stderr, "Error: Out of memory.\n");
+                free(combined_info);
+                free(filename);
+                return NULL;
+            }
+
+            // Copy tokens using strtok (consider alternative parsing if thread-safety is crucial)
+            char *tmp_info = strdup(combined_info);
+            strcpy(mudurl, strtok(tmp_info, ","));
+            strcpy(mudsigner, strtok(NULL, ","));
+            free(tmp_info);
+
+            if (mudurl != NULL && mudsigner != NULL) {
+                printf("MUD URL: %s\n", mudurl);
+                printf("MUD Signer: %s\n", mudsigner);
+
+                // Curlata al server MUD
+                rescurl = getOpenMudFile(mudurl, "mudfile.json");
+
+                free(mudurl);
+                free(mudsigner);
+            } else {
+                printf("Error: Failed to parse combined MUD URL and signer.\n");
+            }
+
+            free(combined_info); 
         } else {
             printf("Failed to extract MUD URL and signer.\n");
         }
+
+        free(filename); // Free filename memory
     } else {
         printf("Certificate is not valid.\n");
     }
+
+    return NULL;
 }
 
 
