@@ -58,7 +58,7 @@ char *info_detection(char *command, char *extension) {
 }
 
 char *clean_string(char *str) {
-    if (str[0] == '.' && str[1] == '"') {
+    if (str[0] == '.' && (str[1] == '"' || str[1] == '.')) {
         memmove(str, str + 2, strlen(str) - 1);
     }
 
