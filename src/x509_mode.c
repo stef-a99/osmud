@@ -179,8 +179,6 @@ int main(int argc, char *argv[]) {
 
     mosquitto_loop_start(mosq);
 
-    
-
     // Wait for a message to be received
     printf("Press Enter to exit...\n");
     getchar();

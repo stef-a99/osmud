@@ -145,51 +145,50 @@ void doProcessLoop(FD filed, int mode)
 	dhcpEvent.mudSigFileStorageLocation = NULL;
 	int actionResult, retval = 0;
 
-		if (mode == 1)
-		{
-			// x509 stuff
-			actionResult = x509_routine(&dhcpEvent);
-			if (actionResult) {
-				logOmsGeneralMessage(OMS_CRIT, OMS_SUBSYS_DEVICE_INTERFACE, "Problems with x509 routine.");
-				retval = 1;
-			}
+	if (mode == 1)
+	{
+		// x509 stuff
+		actionResult = x509_routine(&dhcpEvent);
+		if (actionResult) {
+			logOmsGeneralMessage(OMS_CRIT, OMS_SUBSYS_DEVICE_INTERFACE, "Problems with x509 routine.");
+			retval = 1;
 		}
-		else
+	}
+	else
+	{
+		logOmsGeneralMessage(OMS_INFO, OMS_SUBSYS_GENERAL, "Starting osMUD in DHCP mode");
+		while (1)
 		{
-			logOmsGeneralMessage(OMS_INFO, OMS_SUBSYS_GENERAL, "Starting osMUD in DHCP mode");
-			while (1)
-			{
-					
-				int hhh;
 				
-				//Dont block context switches, let the process sleep for some time
-				sleep(sleepTimeout);
-				if ((hhh = pollDhcpFile(dhcpEventLine, MAXLINE, filed))) {
-					logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Executing on dhcpmasq info");
-					if (processDhcpEventFromLog(dhcpEventLine, &dhcpEvent))
-					{
-						// There is a valid DHCP event to process
-						executeOpenMudDhcpAction(&dhcpEvent, mode);
-					}
-					else
-					{
-						logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Will not process DHCP event - invalid message format.... sleeping for 5...");
-					}
+			int hhh;
+			
+			//Dont block context switches, let the process sleep for some time
+			sleep(sleepTimeout);
+			if ((hhh = pollDhcpFile(dhcpEventLine, MAXLINE, filed))) {
+				logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Executing on dhcpmasq info");
+				if (processDhcpEventFromLog(dhcpEventLine, &dhcpEvent))
+				{
+					// There is a valid DHCP event to process
+					executeOpenMudDhcpAction(&dhcpEvent, mode);
 				}
-				#if 0
-						else {
-							logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Logging no data read.... sleeping for 5...");
-						}
-				#endif
+				else
+				{
+					logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Will not process DHCP event - invalid message format.... sleeping for 5...");
+				}
 			}
-		
-				clearDhcpEventRecord(&dhcpEvent);
-
-				if (heartBeatCycle++ > heartBeatLogInterval) {
-					dumpStatsToLog();
-					heartBeatCycle = 0;
-				}
+			#if 0
+					else {
+						logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Logging no data read.... sleeping for 5...");
+					}
+			#endif
 		}
+		
+			clearDhcpEventRecord(&dhcpEvent);
+			if (heartBeatCycle++ > heartBeatLogInterval) {
+				dumpStatsToLog();
+				heartBeatCycle = 0;
+			}
+	}
 		
 }
 
