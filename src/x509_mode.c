@@ -106,7 +106,7 @@ char** extract_info(char *x509_cert) {
 
 void *manage_certificate(void *msg) {
     char *certificate = (char *)msg;
-    char **result = (char **)malloc(2 * sizeof(char *));
+    char **combined = (char **)malloc(2 * sizeof(char *));
     // Write the certificate to a file
     char *filename = strrchr(topic, '/') + 1;
     filename = strcat(filename, ".pem");
@@ -143,8 +143,8 @@ void *manage_certificate(void *msg) {
 
     if (valid) {
         printf("Certificate is valid.\n");
-        strcpy(result, extract_info(filename));
-        if (result != NULL) {
+        strcpy(combined, extract_info(filename));
+        if (combined != NULL) {
             printf("MUD URL: %s\n", result[0]);
             printf("MUD Signer: %s\n", result[1]);   
         }
