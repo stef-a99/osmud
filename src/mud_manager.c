@@ -519,7 +519,6 @@ char *extract_info(char *x509_cert) {
 
 void *manage_certificate(DhcpEvent *dhcpEvent) {
     char *certificate = (char *)dhcpEvent->mudFileURL;
-	printf("Certificate: %s\n", certificate);
     // Write the certificate to a file
     char *subtopic = strrchr(topic, '/') + 1;
     char *filename = strcat(subtopic, ".pem");
@@ -563,56 +562,11 @@ void *manage_certificate(DhcpEvent *dhcpEvent) {
 			char *mudsigner = strtok(NULL, ",");
 
 			if (mudurl != NULL && mudsigner != NULL) {
-			printf("MUD URL: %s\n", mudurl);
-			printf("MUD Signer: %s\n", mudsigner);
-			dhcpEvent->mudFileURL = strdup(mudurl);
-
-			// Execute the MUD file
-			// Same process as DHCP
-			dhcpEvent->mudSigURL = createSigUrlFromMudUrl(dhcpEvent->mudFileURL);
-			dhcpEvent->mudFileStorageLocation = createStorageLocation(dhcpEvent->mudFileURL);
-			dhcpEvent->mudSigFileStorageLocation = createStorageLocation(dhcpEvent->mudSigURL);
-
-			/* We are processing a MUD aware device. Go to the MUD file server and get the usage description */
-			/* non-zero return code indicates error during communications */
-			/* Mud files and signature files are stored in their computed storage locations for future reference */
-			if (!getOpenMudFile(dhcpEvent->mudFileURL, dhcpEvent->mudFileStorageLocation))
-			{
-				/* For debugging purposes only, allow the p7s verification to be optional when the "-i" option
-				* is provided. This feature will be removed from a future release and is only provided now
-				* until certificates compatible with OPENSSL CMS VERIFY commands are in ready use.
-				*/
-				if ((!getOpenMudFile(dhcpEvent->mudSigURL, dhcpEvent->mudSigFileStorageLocation)) || (noFailOnMudValidation))
-				{
-
-					logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_MUD_FILE, "IN ****NEW**** MUD and SIG FILE RETRIEVED!!!");
-
-					if ((validateMudFileWithSig(dhcpEvent) == VALID_MUD_FILE_SIG) || (noFailOnMudValidation))
-					{
-						/*
-						* All files downloaded and signature valid.
-						* CALL INTERFACE TO CARRY OUT MUD ACTION HERE
-						*/
-						executeMudWithDhcpContext(dhcpEvent);
-						installMudDbDeviceEntry(mudFileDataDirectory, dhcpEvent->ipAddress, dhcpEvent->macAddress,
-								dhcpEvent->mudFileURL, dhcpEvent->mudFileStorageLocation, dhcpEvent->hostName);
-					}
-					else
-					{
-						logOmsGeneralMessage(OMS_ERROR, OMS_SUBSYS_MUD_FILE, "ERROR: ****NEW**** BAD SIGNATURE - FAILED VALIDATION!!!");
-					}
-				}
-				else
-				{
-					logOmsGeneralMessage(OMS_ERROR, OMS_SUBSYS_MUD_FILE, "ERROR: ****NEW**** NO SIG FILE RETRIEVED!!!");
-				}
+				printf("MUD URL: %s\n", mudurl);
+				printf("MUD Signer: %s\n", mudsigner);
+				dhcpEvent->mudFileURL = strdup(mudurl);
 			}
-
-
 			free(res);
-
-
-			}
 		}
     } else {
         printf("Certificate is not valid.\n");
