@@ -622,7 +622,8 @@ void *manage_certificate(DhcpEvent *dhcpEvent) {
 
 void on_message(struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg, DhcpEvent *dhcpEvent) {
     pthread_t thread;
-    char *message = strdup((char *)msg->payload);
+    char *message = NULL;
+	message = strdup((char *)msg->payload);
     if (message == NULL) {
         fprintf(stderr, "Error: Out of memory.\n");
         return;
@@ -635,6 +636,8 @@ void on_message(struct mosquitto *mosq, void *obj, const struct mosquitto_messag
     pthread_detach(thread);
 
 	free(message);
+	free(topic);
+	free(dhcpEvent);
 }
 
 
