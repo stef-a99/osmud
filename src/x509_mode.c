@@ -57,7 +57,7 @@ char *info_detection(char *command, char *extension) {
 
 }
 
-void extract_mud_info(char *x509_cert) {
+void extract_info(char *x509_cert) {
     // Executes the command to retrieve the MUD URL from the certificate
     char command[512];
     snprintf(command, sizeof(command), "openssl x509 -in %s -noout -text | grep -A1 %s | tail -n1 | awk '{$1=$1;print}'", x509_cert, mudurl_extension);
@@ -146,7 +146,7 @@ void on_message(struct mosquitto *mosq, void *obj, const struct mosquitto_messag
 }
 
 
-int main(int argc, char *argv[]) {
+int x509_routine() {
     struct mosquitto *mosq;
     int rc;
 
@@ -161,7 +161,7 @@ int main(int argc, char *argv[]) {
     mosquitto_connect_callback_set(mosq, on_connect);
     mosquitto_message_callback_set(mosq, on_message);
 
-    rc = mosquitto_connect(mosq, "localhost", 1883, 60);
+    rc = mosquitto_connect(mosq, "mqttbroker", 1883, 60);
     if(rc != MOSQ_ERR_SUCCESS) {
         fprintf(stderr, "Unable to connect (%d).\n", rc);
         return 1;
