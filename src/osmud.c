@@ -188,7 +188,7 @@ void doProcessLoop(FD filed, int mode)
 		sleep(sleepTimeout);
 
 		// calls the x509 routine
-		int result = x509_routine();
+		x509_routine();
 
 		// curls to the iot device to get the x509 certificate
 		// Contact the IoT device to retrieve its certificate

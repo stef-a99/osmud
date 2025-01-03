@@ -6,12 +6,13 @@
 #include <pthread.h>
 
 // Function prototypes
+int x509_routine();
 void on_connect(struct mosquitto *mosq, void *obj, int rc);
 void on_message(struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg);
 void *manage_certificate(void *msg);
 char *info_detection(char *command, char *extension);
 void extract_info(char *x509_cert);
-int x509_routine();
+
 
 // Global variables (consider making these more encapsulated if needed)
 extern char message_buffer[256];
