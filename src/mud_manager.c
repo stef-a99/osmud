@@ -517,7 +517,7 @@ char *extract_info(char *x509_cert) {
 	return combined;
 }
 
-void *manage_certificate(DhcpEvent *dhcpEvent) {
+/*void *manage_certificate(DhcpEvent *dhcpEvent) {
     char *certificate = (char *)dhcpEvent->mudFileURL;
     // Write the certificate to a file
     char *subtopic = strrchr(topic, '/') + 1;
@@ -578,12 +578,12 @@ void *manage_certificate(DhcpEvent *dhcpEvent) {
 	free(subtopic);
 	
 	return NULL;
-}
+}*/
 
 
 void on_message(struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg, DhcpEvent *dhcpEvent) {
-    pthread_t thread;
-    char *message = NULL;
+
+	char *message = NULL;
 	message = strdup((char *)msg->payload);
     if (message == NULL) {
         fprintf(stderr, "Error: Out of memory.\n");
@@ -593,9 +593,66 @@ void on_message(struct mosquitto *mosq, void *obj, const struct mosquitto_messag
 	dhcpEvent->mudFileURL = strdup(message);
     topic = strdup(msg->topic);
     printf("Message arrived on topic: %s\n", topic);
-    pthread_create(&thread, NULL, manage_certificate, dhcpEvent);
-    pthread_detach(thread);
 
+	// msg mgmt
+    char *certificate = (char *)dhcpEvent->mudFileURL;
+    // Write the certificate to a file
+    char *subtopic = strrchr(topic, '/') + 1;
+    char *filename = strcat(subtopic, ".pem");
+    FILE *file = fopen(filename, "w");
+    if (file == NULL) {
+        fprintf(stderr, "Error: Unable to open file %s\n", filename);
+        return NULL;
+    }
+    fprintf(file, "%s", certificate);
+    fclose(file);
+
+    // Checks the chain of trust of the certificate
+    char command[512];
+	char *res = NULL;
+    bool valid = false;
+    snprintf(command, sizeof(command), "openssl verify -CAfile /etc/ssl/certs/ca-certificates.crt %s", filename);
+    FILE *fp = popen(command, "r");
+    if (fp == NULL) {
+        fprintf(stderr, "Error: Failed to run command.\n");
+        return NULL;
+    }
+
+    char result[128];
+    if (fgets(result, sizeof(result), fp) != NULL) {
+        if (strstr(result, "OK") != NULL) {
+            valid = true;
+        } else {
+            valid = false;
+        }
+    } else {
+        valid = false;
+    }
+
+    pclose(fp);
+
+    if (valid) {
+        printf("Certificate is valid.\n");
+        res = extract_info(filename);
+		if (res != NULL) {
+			char *mudurl = strtok(res, ",");
+			char *mudsigner = strtok(NULL, ",");
+
+			if (mudurl != NULL && mudsigner != NULL) {
+				printf("MUD URL: %s\n", mudurl);
+				printf("MUD Signer: %s\n", mudsigner);
+				dhcpEvent->mudFileURL = strdup(mudurl);
+			}
+			free(res);
+		}
+    } else {
+        printf("Certificate is not valid.\n");
+    }
+
+	free(res);
+	free(filename);
+	free(certificate);
+	free(subtopic);
 	free(message);
 	free(topic);
 	free(dhcpEvent);
