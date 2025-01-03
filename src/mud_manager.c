@@ -271,7 +271,7 @@ void executeNewDhcpAction(DhcpEvent *dhcpEvent, int mode)
 	buildDhcpEventContext(logMsgBuf, "NEW", dhcpEvent);
 	logOmsGeneralMessage(OMS_INFO, OMS_SUBSYS_GENERAL, logMsgBuf);
 
-	if ((dhcpEvent) && (dhcpEvent->mudFileURL))
+	if ((dhcpEvent) && (dhcpEvent->mudFileURL) && (mode == 0))
 	{
 		dhcpEvent->mudSigURL = createSigUrlFromMudUrl(dhcpEvent->mudFileURL);
 		dhcpEvent->mudFileStorageLocation = createStorageLocation(dhcpEvent->mudFileURL);
