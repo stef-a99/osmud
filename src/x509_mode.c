@@ -143,7 +143,7 @@ void *manage_certificate(void *msg) {
 
     if (valid) {
         printf("Certificate is valid.\n");
-        result = extract_info(filename);
+        strcpy(result, extract_info(filename));
         if (result != NULL) {
             printf("MUD URL: %s\n", result[0]);
             printf("MUD Signer: %s\n", result[1]);   
