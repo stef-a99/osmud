@@ -519,7 +519,7 @@ char *extract_info(char *x509_cert) {
 
 void *manage_certificate(DhcpEvent *dhcpEvent) {
     char *certificate = (char *)dhcpEvent->mudFileURL;
-
+	printf("Certificate: %s\n", certificate);
     // Write the certificate to a file
     char *subtopic = strrchr(topic, '/') + 1;
     char *filename = strcat(subtopic, ".pem");
@@ -617,6 +617,13 @@ void *manage_certificate(DhcpEvent *dhcpEvent) {
     } else {
         printf("Certificate is not valid.\n");
     }
+
+	free(res);
+	free(filename);
+	free(certificate);
+	free(subtopic);
+	
+	return NULL;
 }
 
 
