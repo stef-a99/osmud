@@ -163,7 +163,6 @@ void *manage_certificate(void *msg) {
     if (valid) {
         printf("Certificate is valid.\n");
         combined_info = extract_info(filename);
-        int rescurl = 0;
 
         if (combined_info != NULL) {
             // Allocate memory for combined MUD URL and signer
@@ -187,8 +186,7 @@ void *manage_certificate(void *msg) {
                 printf("MUD URL: %s\n", mudurl);
                 printf("MUD Signer: %s\n", mudsigner);
 
-                // Curlata al server MUD
-                rescurl = getOpenMudFile(mudurl, "mudfile.json");
+                
 
                 free(mudurl);
                 free(mudsigner);
