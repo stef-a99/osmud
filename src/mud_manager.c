@@ -271,7 +271,7 @@ void executeNewDhcpAction(DhcpEvent *dhcpEvent, int mode)
 	buildDhcpEventContext(logMsgBuf, "NEW", dhcpEvent);
 	logOmsGeneralMessage(OMS_INFO, OMS_SUBSYS_GENERAL, logMsgBuf);
 
-	if ((dhcpEvent) && (dhcpEvent->mudFileURL) && (mode == 0))
+	if ((dhcpEvent) && (dhcpEvent->mudFileURL))
 	{
 		dhcpEvent->mudSigURL = createSigUrlFromMudUrl(dhcpEvent->mudFileURL);
 		dhcpEvent->mudFileStorageLocation = createStorageLocation(dhcpEvent->mudFileURL);
@@ -321,45 +321,12 @@ void executeNewDhcpAction(DhcpEvent *dhcpEvent, int mode)
 	}
 	else
 	{
-		// No MUD file URL provided - just do the legacy action only if DHCP implementation
-		if (mode == 0){
-			/* This is a legacy non-MUD aware device. */
-			logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_MUD_FILE, "IN ****NEW**** LEGACY DEVICE -- no mud file declared.");
-			doDhcpLegacyAction(dhcpEvent);
-			installMudDbDeviceEntry(mudFileDataDirectory, dhcpEvent->ipAddress, dhcpEvent->macAddress, NULL, NULL, dhcpEvent->hostName);
-		}
-		else{
 
-			// No MUD file URL provided - the device must communicate only with osmud
-			logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_MUD_FILE, "IN ****NEW**** NO MUD FILE DECLARED - RESTRICTING TO LOCAL NETWORK ONLY.");
-			actionResult = installFirewallIPRule(dhcpEvent->ipAddress, 		/* srcIp */
-													"any", 					/* destIp */
-													"any",		 			/* destPort */
-													LAN_DEVICE_NAME, 		/* srcDevice - lan or wan */
-													LAN_DEVICE_NAME,		/* destDevice - lan or wan */
-													"all", 					/* protocol - tcp/udp */
-													"ALLOW-LOCAL", 			/* the name of the rule */
-													"DENY",				/* ACCEPT or DENY or REJECT */
-													"all",
-													dhcpEvent->hostName		/* hostname of the new device */ );
-			if (actionResult) {
-				logOmsGeneralMessage(OMS_CRIT, OMS_SUBSYS_DEVICE_INTERFACE, "Problems installing local network restrict rule.");
-				retval = 1;
-			}
-
-			// Lastly, commit rules and restart the firewall subsystem
-			if (!retval)
-				commitAndApplyFirewallRules();
-			else
-				rollbackFirewallConfiguration();
-			
-			// Starts the x509 implementation
-			actionResult = x509_routine(dhcpEvent);
-			if (actionResult) {
-				logOmsGeneralMessage(OMS_CRIT, OMS_SUBSYS_DEVICE_INTERFACE, "Problems with x509 routine.");
-				retval = 1;
-			}
-		}
+		/* This is a legacy non-MUD aware device. */
+		logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_MUD_FILE, "IN ****NEW**** LEGACY DEVICE -- no mud file declared.");
+		doDhcpLegacyAction(dhcpEvent);
+		installMudDbDeviceEntry(mudFileDataDirectory, dhcpEvent->ipAddress, dhcpEvent->macAddress, NULL, NULL, dhcpEvent->hostName);
+		
 			
 	}
 }
