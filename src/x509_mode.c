@@ -205,3 +205,8 @@ int x509_routine() {
 
     return 0;
 }
+
+int main() {
+    x509_routine();
+    return 0;
+}
