@@ -146,28 +146,33 @@ void doProcessLoop(FD filed, int mode)
 
 		while (1)
 		{
+			int hhh;
 			//Dont block context switches, let the process sleep for some time
 			sleep(sleepTimeout);
-
-			int hhh;
-			if ((hhh = pollDhcpFile(dhcpEventLine, MAXLINE, filed))) {
-				logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Executing on dhcpmasq info");
-				if (processDhcpEventFromLog(dhcpEventLine, &dhcpEvent))
-				{
-					// There is a valid DHCP event to process
-					executeOpenMudDhcpAction(&dhcpEvent, mode);
-				}
-				else
-				{
-					logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Will not process DHCP event - invalid message format.... sleeping for 5...");
-				}
-			}
-			#if 0
-					else {
-						logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Logging no data read.... sleeping for 5...");
+			if(mode == 0){
+				if ((hhh = pollDhcpFile(dhcpEventLine, MAXLINE, filed))) {
+					logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Executing on dhcpmasq info");
+					if (processDhcpEventFromLog(dhcpEventLine, &dhcpEvent))
+					{
+						// There is a valid DHCP event to process
+						executeOpenMudDhcpAction(&dhcpEvent, mode);
 					}
-			#endif
+					else
+					{
+						logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Will not process DHCP event - invalid message format.... sleeping for 5...");
+					}
+				}
+				#if 0
+						else {
+							logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Logging no data read.... sleeping for 5...");
+						}
+				#endif
 
+			}
+			else{
+				executeOpenMudDhcpAction(&dhcpEvent, 0);
+			}
+			
 			// Clear variables for next iteration
 			clearDhcpEventRecord(&dhcpEvent);
 
