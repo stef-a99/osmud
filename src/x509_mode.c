@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
+#include <x509_mode.h>
 
 char message_buffer[256];
 pthread_mutex_t message_mutex = PTHREAD_MUTEX_INITIALIZER;
