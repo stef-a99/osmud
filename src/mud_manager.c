@@ -506,7 +506,7 @@ char *clean_string(char *str){
 
 }
 
-char *extract_mud_info(char *x509_cert) {
+char *extract_info(char *x509_cert) {
     // Executes the command to retrieve the MUD URL from the certificate
 	char *combined = (char*)malloc(256);
     char command[512];
@@ -590,7 +590,7 @@ void *manage_certificate(DhcpEvent *dhcpEvent) {
 
     if (valid) {
         printf("Certificate is valid.\n");
-        res = extract_mud_info(filename);
+        res = extract_info(filename);
 		if (res != NULL) {
 			char *mudurl = strtok(res, ",");
 			char *mudsigner = strtok(NULL, ",");
