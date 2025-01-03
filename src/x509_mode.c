@@ -166,7 +166,7 @@ void *manage_certificate(void *msg) {
 
         if (combined_info != NULL) {
             printf("MUD URL and signer extracted successfully.\n");
-            retval = getOpenMudFile(&mudurl, &subtopic);
+            retval = getOpenMudFile(mudurl, subtopic);
         } else {
             printf("Failed to extract MUD URL and signer.\n");
         }
