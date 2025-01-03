@@ -397,14 +397,15 @@ int main(int argc, char* argv[])
 		chdir("/tmp");
     }
 
+	printf("Starting OSMUD controlling process\n");
+	doProcessLoop(filed, x509Mode);
 
 	// Close stdin. stdout and stderr
 	close(STDIN_FILENO);
 	close(STDOUT_FILENO);
 	close(STDERR_FILENO);
 
-	printf("Starting OSMUD controlling process\n");
-	doProcessLoop(filed, x509Mode);
+	
 
 	close(filed);
 	fclose(logger);
