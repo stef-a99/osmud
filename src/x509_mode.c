@@ -124,7 +124,7 @@ void *manage_certificate(void *msg) {
 
     if (valid) {
         printf("Certificate is valid.\n");
-        extract_mud_info(filename);
+        extract_info(filename);
     } else {
         printf("Certificate is not valid.\n");
     }
