@@ -144,15 +144,17 @@ void doProcessLoop(FD filed, int mode)
 	dhcpEvent.mudFileStorageLocation = NULL;
 	dhcpEvent.mudSigFileStorageLocation = NULL;
 
-		printf("x509 mode: %d\n", mode);
-		while (1)
+
+		if (mode == 0)
 		{
-			
-			int hhh;
-			int actionResult, retval = 0;
-			//Dont block context switches, let the process sleep for some time
-			sleep(sleepTimeout);
-			if(mode == 0){
+			logOmsGeneralMessage(OMS_INFO, OMS_SUBSYS_GENERAL, "Starting osMUD in DHCP mode");
+			while (1)
+			{
+				
+				int hhh;
+				
+				//Dont block context switches, let the process sleep for some time
+				sleep(sleepTimeout);
 				if ((hhh = pollDhcpFile(dhcpEventLine, MAXLINE, filed))) {
 					logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Executing on dhcpmasq info");
 					if (processDhcpEventFromLog(dhcpEventLine, &dhcpEvent))
@@ -172,16 +174,18 @@ void doProcessLoop(FD filed, int mode)
 				#endif
 
 			}
-			else{
-				printf("Starting x509 routine\n");
-				// Starts the x509 implementation
-				actionResult = x509_routine(dhcpEvent);
-				if (actionResult) {
-					logOmsGeneralMessage(OMS_CRIT, OMS_SUBSYS_DEVICE_INTERFACE, "Problems with x509 routine.");
-					retval = 1;
-				}
+		}
+		else
+		{
+			int actionResult, retval = 0;
+			logOmsGeneralMessage(OMS_INFO, OMS_SUBSYS_GENERAL, "Starting osMUD in X509 mode");
+			printf("Starting x509 routine\n");
+			// Starts the x509 implementation
+			actionResult = x509_routine(dhcpEvent);
+			if (actionResult) {
+				logOmsGeneralMessage(OMS_CRIT, OMS_SUBSYS_DEVICE_INTERFACE, "Problems with x509 routine.");
+			retval = 1;
 			}
-			
 			// Clear variables for next iteration
 			clearDhcpEventRecord(&dhcpEvent);
 
@@ -397,7 +401,6 @@ int main(int argc, char* argv[])
 		chdir("/tmp");
     }
 
-	printf("Starting OSMUD controlling process\n");
 	doProcessLoop(filed, x509Mode);
 
 	// Close stdin. stdout and stderr
