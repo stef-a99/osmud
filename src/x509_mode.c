@@ -66,9 +66,10 @@ char *clean_string(char *str) {
 }
 
 
-void extract_info(char *x509_cert) {
+char *extract_info(char *x509_cert) {
     // Executes the command to retrieve the MUD URL from the certificate
     char command[512];
+    char *combined_info = (char *)malloc(strlen(mudurl) + strlen(mudsigner) + 2);
     snprintf(command, sizeof(command), "openssl x509 -in %s -noout -text | grep -A1 %s | tail -n1 | awk '{$1=$1;print}'", x509_cert, mudurl_extension);
 
     // Stores the MUD URL in a variable
@@ -90,17 +91,30 @@ void extract_info(char *x509_cert) {
         mudsigner = clean_string(mudsigner);
         printf("Extracted MUD signer: %s\n", mudsigner);
     }
+
+    if (mudurl != NULL && mudsigner != NULL) {
+        
+        snprintf(combined_info, sizeof(combined_info), "%s,%s", mudurl, mudsigner);
+        printf("Combined MUD URL and signer: %s\n", combined_info);
+    }
+    else {
+        combined_info = NULL;
+    }
+
+
      // Free allocated memory
     free(mudurl);
     free(mudsigner); 
+
+    return combined_info;
 }
 
 void *manage_certificate(void *msg) {
     char *certificate = (char *)msg;
 
     // Write the certificate to a file
-    char *filename = strrchr(topic, '/') + 1;
-    filename = strcat(filename, ".pem");
+    char *subtopic = strrchr(topic, '/') + 1;
+    char *filename = strcat(subtopic, ".pem");
     FILE *file = fopen(filename, "w");
     if (file == NULL) {
         fprintf(stderr, "Error: Unable to open file %s\n", filename);
@@ -111,7 +125,9 @@ void *manage_certificate(void *msg) {
 
     // Checks the chain of trust of the certificate
     char command[512];
+    char *combined_info = NULL;
     bool valid = false;
+    int retval = 0;
     snprintf(command, sizeof(command), "openssl verify -CAfile /etc/ssl/certs/ca-certificates.crt %s", filename);
     FILE *fp = popen(command, "r");
     if (fp == NULL) {
@@ -134,7 +150,25 @@ void *manage_certificate(void *msg) {
 
     if (valid) {
         printf("Certificate is valid.\n");
-        extract_info(filename);
+        combined_info = extract_info(filename);
+        // Retrieve the MUD file
+        char *mudurl = strtok(combined_info, ",");
+        char *mudsigner = strtok(NULL, ",");
+
+        if (mudurl != NULL && mudsigner != NULL) {
+            printf("MUD URL: %s\n", mudurl);
+            printf("MUD Signer: %s\n", mudsigner);
+        } else {
+            printf("Error: Failed to parse combined MUD URL and signer.\n");
+        }
+
+
+        if (combined_info != NULL) {
+            printf("MUD URL and signer extracted successfully.\n");
+            retval = getOpenMudFile(&mudurl, &subtopic);
+        } else {
+            printf("Failed to extract MUD URL and signer.\n");
+        }
     } else {
         printf("Certificate is not valid.\n");
     }
