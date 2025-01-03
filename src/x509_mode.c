@@ -57,6 +57,15 @@ char *info_detection(char *command, char *extension) {
 
 }
 
+char *clean_string(char *str) {
+    if (str[0] == '.' && str[1] == '"') {
+        memmove(str, str + 2, strlen(str) - 1);
+    }
+
+    return str;
+}
+
+
 void extract_info(char *x509_cert) {
     // Executes the command to retrieve the MUD URL from the certificate
     char command[512];
@@ -65,11 +74,11 @@ void extract_info(char *x509_cert) {
     // Stores the MUD URL in a variable
     char *mudurl = info_detection(command, mudurl_extension);
     if(mudurl != NULL) {
+        mudurl = clean_string(mudurl);
         printf("Extracted MUD URL: %s\n", mudurl);
     } else {
         printf("Unable to extract MUD URL. The device could be not MUD-aware, or the id-pe-mud-url extension was not added to the certificate.\n");
     }
-    printf("Extracted MUD URL: %s\n", mudurl);
 
     // Executes the command to retrieve the MUD signer from the certificate
     snprintf(command, sizeof(command), "openssl x509 -in %s -noout -text | grep -A1  %s| tail -n1 | awk '{$1=$1;print}'", x509_cert, mudsigner_extension);
@@ -78,6 +87,7 @@ void extract_info(char *x509_cert) {
         printf("Unable to extract MUD signer. The device could be not MUD-aware, or the id-pe-mud-signer extension was not added to the certificate.\n");
     }
     else {
+        mudsigner = clean_string(mudsigner);
         printf("Extracted MUD signer: %s\n", mudsigner);
     }
      // Free allocated memory
