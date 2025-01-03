@@ -119,7 +119,7 @@ getDhcpEventActionClass(char *dhcpAction)
 }
 
 int
-processDhcpEventFromLog(char *logMessage, DhcpEvent *dhcpEvent, int mode)
+processDhcpEventFromLog(char *logMessage, DhcpEvent *dhcpEvent)
 {
 	/*
 	 * Format: Fields are PIPE delimited! This matches up to the "detect_new_devices.sh" script
@@ -166,9 +166,6 @@ processDhcpEventFromLog(char *logMessage, DhcpEvent *dhcpEvent, int mode)
 		dhcpEvent->mudFileURL = NULL;
 		if ((array[6] != NULL) && (strlen(array[6]) > 1)) {
 			dhcpEvent->mudFileURL = array[6];
-		}
-		if (mode != 0){
-			dhcpEvent->mudFileURL = NULL; // in x509 mode, we don't have a MUD URL in the log
 		}
 	} else {
 		retval = 0; //error process log message line

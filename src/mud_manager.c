@@ -345,7 +345,8 @@ void executeDelDhcpAction(DhcpEvent *dhcpEvent)
 }
 
 
-void executeOpenMudDhcpAction(DhcpEvent *dhcpEvent)
+void
+executeOpenMudDhcpAction(DhcpEvent *dhcpEvent)
 {
 	if (dhcpEvent) {
 		switch (dhcpEvent->action) {

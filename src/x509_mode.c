@@ -3,8 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
-#include "mud_manager.h"
-#include "mudparser.h"
 
 char message_buffer[256];
 pthread_mutex_t message_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -68,45 +66,38 @@ char *clean_string(char *str) {
 }
 
 
-char** extract_info(char *x509_cert) {
-    char **result = (char **)malloc(2 * sizeof(char *));
-    if (result == NULL) {
-        fprintf(stderr, "Memory allocation failed.\n");
-        return NULL;
-    }
-
+void extract_info(char *x509_cert) {
     // Executes the command to retrieve the MUD URL from the certificate
     char command[512];
     snprintf(command, sizeof(command), "openssl x509 -in %s -noout -text | grep -A1 %s | tail -n1 | awk '{$1=$1;print}'", x509_cert, mudurl_extension);
 
     // Stores the MUD URL in a variable
     char *mudurl = info_detection(command, mudurl_extension);
-    if (mudurl != NULL) {
+    if(mudurl != NULL) {
         mudurl = clean_string(mudurl);
+        printf("Extracted MUD URL: %s\n", mudurl);
     } else {
         printf("Unable to extract MUD URL. The device could be not MUD-aware, or the id-pe-mud-url extension was not added to the certificate.\n");
     }
 
     // Executes the command to retrieve the MUD signer from the certificate
-    snprintf(command, sizeof(command), "openssl x509 -in %s -noout -text | grep -A1 %s | tail -n1 | awk '{$1=$1;print}'", x509_cert, mudsigner_extension);
+    snprintf(command, sizeof(command), "openssl x509 -in %s -noout -text | grep -A1  %s| tail -n1 | awk '{$1=$1;print}'", x509_cert, mudsigner_extension);
     char *mudsigner = info_detection(command, mudsigner_extension);
-    if (mudsigner == NULL) {
+    if(mudsigner == NULL) {
         printf("Unable to extract MUD signer. The device could be not MUD-aware, or the id-pe-mud-signer extension was not added to the certificate.\n");
-    } else {
-        mudsigner = clean_string(mudsigner);
     }
-
-    result[0] = mudurl;
-    result[1] = mudsigner;
-
+    else {
+        mudsigner = clean_string(mudsigner);
+        printf("Extracted MUD signer: %s\n", mudsigner);
+    }
+     // Free allocated memory
     free(mudurl);
-    free(mudsigner);
-    return result;
+    free(mudsigner); 
 }
 
 void *manage_certificate(void *msg) {
     char *certificate = (char *)msg;
-    char **combined = (char **)malloc(2 * sizeof(char *));
+
     // Write the certificate to a file
     char *filename = strrchr(topic, '/') + 1;
     filename = strcat(filename, ".pem");
@@ -143,11 +134,7 @@ void *manage_certificate(void *msg) {
 
     if (valid) {
         printf("Certificate is valid.\n");
-        combined = extract_info(filename); 
-        if (combined != NULL) {
-            printf("MUD URL: %s\n", result[0]);
-            printf("MUD Signer: %s\n", result[1]);   
-        }
+        extract_info(filename);
     } else {
         printf("Certificate is not valid.\n");
     }
@@ -203,10 +190,5 @@ int x509_routine() {
     mosquitto_destroy(mosq);
     mosquitto_lib_cleanup();
 
-    return 0;
-}
-
-int main() {
-    x509_routine();
     return 0;
 }

@@ -157,7 +157,7 @@ void doProcessLoop(FD filed, int mode)
 			int hhh;
 			if ((hhh = pollDhcpFile(dhcpEventLine, MAXLINE, filed))) {
 				logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Executing on dhcpmasq info");
-				if (processDhcpEventFromLog(dhcpEventLine, &dhcpEvent, mode))
+				if (processDhcpEventFromLog(dhcpEventLine, &dhcpEvent))
 				{
 					// There is a valid DHCP event to process
 					executeOpenMudDhcpAction(&dhcpEvent);
@@ -186,9 +186,7 @@ void doProcessLoop(FD filed, int mode)
 	{
 		// This is the x509 mode 
 		// calls the x509 routine
-		if (processDhcpEventFromLog(dhcpEventLine, &dhcpEvent, mode)){
-			x509_routine();
-		}
+		x509_routine();
 		
 	}
 		
