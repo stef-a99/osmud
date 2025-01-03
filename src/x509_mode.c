@@ -94,7 +94,14 @@ void extract_info(char *x509_cert) {
 
     printf("Retrieving MUD file...\n");
     printf("MUD URL: %s\n", mudurl);
-    rescurl = getOpenMudFile(mudurl, "./mudfile.json");
+    // Retrieve the MUD file using curl
+    snprintf(command, sizeof(command), "curl -s -o mudfile.json %s", mudurl);
+    int res = system(command);
+    if (res == 0) {
+        printf("MUD file retrieved successfully.\n");
+    } else {
+        printf("Failed to retrieve MUD file.\n");
+    }
 
      // Free allocated memory
     free(mudurl);
