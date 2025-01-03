@@ -94,9 +94,14 @@ char *extract_info(char *x509_cert) {
     }
 
     if (mudurl != NULL && mudsigner != NULL) {
-        
-        snprintf(combined_info, sizeof(combined_info), "%s,%s", mudurl, mudsigner);
-        printf("Combined MUD URL and signer: %s\n", combined_info);
+        size_t combined_length = strlen(mudurl) + strlen(mudsigner) + 2; // +1 for comma, +1 for null terminator
+        combined_info = malloc(combined_length);
+        if (combined_info == NULL) {
+            fprintf(stderr, "Error: Out of memory in extract_info\n");
+            free(mudurl);
+            free(mudsigner);
+            return NULL;
+        }
     }
     else {
         combined_info = NULL;
@@ -191,7 +196,9 @@ void *manage_certificate(void *msg) {
                 printf("Error: Failed to parse combined MUD URL and signer.\n");
             }
 
-            free(combined_info); 
+            free(combined_info);
+            free(mudurl);
+            free(mudsigner); 
         } else {
             printf("Failed to extract MUD URL and signer.\n");
         }
