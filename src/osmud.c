@@ -406,13 +406,15 @@ int main(int argc, char* argv[])
     }
 
 
+	
+
+	doProcessLoop(filed, x509Mode);
+
 	// Close stdin. stdout and stderr
 	close(STDIN_FILENO);
 	close(STDOUT_FILENO);
 	close(STDERR_FILENO);
-
-	doProcessLoop(filed, x509Mode);
-
+	
 	close(filed);
 	fclose(logger);
 	return (0);
