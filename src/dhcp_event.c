@@ -102,12 +102,13 @@ int mudSignerVerify (char *mudsigner, char *location){
 	// returns 0 if the mudsigner is the subject of the mudsignature
 	// returns 1 if the mudsigner is not the subject of the mudsignature
 
-	// Extract the mudsigner from the mudsignature
-	/*char execBuf[BUFSIZE];
-	int retval, sigStatus;
-
-	snprintf(execBuf, BUFSIZE, "openssl cms -verify -in %s -inform DER -content %s", location);
-	execBuf[BUFSIZE-1] = '\0';*/
+	// TODO: verify if it works
+	char command[256];
+	sprintf(command, "openssl x509 -in %s -noout -issuer | grep -q \"%s\"", location, mudsigner);
+	int result = system(command);
+	if (result != 0) {
+		return 1;
+	}
 
 	return 0;
 }
