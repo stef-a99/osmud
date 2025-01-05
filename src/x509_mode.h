@@ -6,7 +6,7 @@
 #include <pthread.h>
 
 // Function prototypes
-int x509_routine();
+int x509_routine(DhcpEvent *dhcpEvent);
 void on_connect(struct mosquitto *mosq, void *obj, int rc);
 void on_message(struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg);
 void *manage_certificate(void *msg);

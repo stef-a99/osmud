@@ -144,51 +144,53 @@ void doProcessLoop(FD filed, int mode)
 	dhcpEvent.mudSigURL = NULL;
 	dhcpEvent.mudFileStorageLocation = NULL;
 	dhcpEvent.mudSigFileStorageLocation = NULL;
+	dhcpEvent.mudsigner = NULL;
 	
 
-	if(mode == 0){
-		
 
-		while (1)
-		{
+
+	while (1)
+	{
 			//Dont block context switches, let the process sleep for some time
-			sleep(sleepTimeout);
+		sleep(sleepTimeout);
 
-			int hhh;
-			if ((hhh = pollDhcpFile(dhcpEventLine, MAXLINE, filed))) {
-				logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Executing on dhcpmasq info");
-				if (processDhcpEventFromLog(dhcpEventLine, &dhcpEvent))
+		int hhh;
+		if ((hhh = pollDhcpFile(dhcpEventLine, MAXLINE, filed))) {
+			logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Executing on dhcpmasq info");
+			if (processDhcpEventFromLog(dhcpEventLine, &dhcpEvent, mode))
+			{
+				if (mode == 0)
 				{
-					// There is a valid DHCP event to process
-					executeOpenMudDhcpAction(&dhcpEvent);
+					// We are working with the DHCP implementation
+					executeOpenMudDhcpAction(&dhcpEvent, 0);
 				}
 				else
 				{
-					logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Will not process DHCP event - invalid message format.... sleeping for 5...");
+					// We are working with the X509 implementation
+					x509_routine(&dhcpEvent);
 				}
+
 			}
-			#if 0
-					else {
-						logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Logging no data read.... sleeping for 5...");
-					}
-			#endif
-
-			// Clear variables for next iteration
-			clearDhcpEventRecord(&dhcpEvent);
-
-			if (heartBeatCycle++ > heartBeatLogInterval) {
-				dumpStatsToLog();
-				heartBeatCycle = 0;
+			else
+			{
+				logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Will not process DHCP event - invalid message format.... sleeping for 5...");
 			}
 		}
+		#if 0
+				else {
+					logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Logging no data read.... sleeping for 5...");
+				}
+		#endif
+
+		// Clear variables for next iteration
+		clearDhcpEventRecord(&dhcpEvent);
+
+		if (heartBeatCycle++ > heartBeatLogInterval) {
+			dumpStatsToLog();
+			heartBeatCycle = 0;
+		}
 	}
-	else
-	{
-		// This is the x509 mode 
-		// calls the x509 routine
-		x509_routine();
-		
-	}
+
 		
 }
 

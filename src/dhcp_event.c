@@ -75,15 +75,41 @@ void doDhcpLegacyAction(DhcpEvent *dhcpEvent)
 	logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "IN ****NEW**** doDhcpLegacyAction()");
 }
 
-int validateMudFileWithSig(DhcpEvent *dhcpEvent)
+int validateMudFileWithSig(DhcpEvent *dhcpEvent, int mode)
 {
 	int validSig = -1; /* Indicates invalid signature. 0 = valid sig, non-zero is specific signature validation error */
-
 	logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "IN ****NEW**** validateMudFileWithSig()");
 
-	validSig = verifyCmsSignature(dhcpEvent->mudFileStorageLocation, dhcpEvent->mudSigFileStorageLocation);
+	if (mode == 0) {
+		// DHCP implementation
+		validSig = verifyCmsSignature(dhcpEvent->mudFileStorageLocation, dhcpEvent->mudSigFileStorageLocation);
+	} else {
+		// x509 implementation
+		// valideSig will be 0 if verifyCmsSignature returns "OK" and the mudsigner verifies the mudsignature
+		if ((verifyCmsSignature(dhcpEvent->mudFileStorageLocation, dhcpEvent->mudSigFileStorageLocation) == 0) && (mudSignerVerify(dhcpEvent->mudsigner, dhcpEvent->mudSigFileStorageLocation) == 0)) {
+			validSig = 0;
+		} else {
+			validSig = 1;
+		}
+
+	}
 
 	return validSig;
+}
+
+int mudSignerVerify (char *mudsigner, char *location){
+	// verifies that the mudsigner is the subject of the mudsignature
+	// returns 0 if the mudsigner is the subject of the mudsignature
+	// returns 1 if the mudsigner is not the subject of the mudsignature
+
+	// Extract the mudsigner from the mudsignature
+	/*char execBuf[BUFSIZE];
+	int retval, sigStatus;
+
+	snprintf(execBuf, BUFSIZE, "openssl cms -verify -in %s -inform DER -content %s", location);
+	execBuf[BUFSIZE-1] = '\0';*/
+
+	return 0;
 }
 
 const char*
@@ -119,7 +145,7 @@ getDhcpEventActionClass(char *dhcpAction)
 }
 
 int
-processDhcpEventFromLog(char *logMessage, DhcpEvent *dhcpEvent)
+processDhcpEventFromLog(char *logMessage, DhcpEvent *dhcpEvent, int mode)
 {
 	/*
 	 * Format: Fields are PIPE delimited! This matches up to the "detect_new_devices.sh" script
@@ -166,6 +192,10 @@ processDhcpEventFromLog(char *logMessage, DhcpEvent *dhcpEvent)
 		dhcpEvent->mudFileURL = NULL;
 		if ((array[6] != NULL) && (strlen(array[6]) > 1)) {
 			dhcpEvent->mudFileURL = array[6];
+		} else {
+			if ((mode == 0 &&) (array[6] == NULL)) {
+				dhcpEvent->mudFileURL = array[6];
+			}
 		}
 	} else {
 		retval = 0; //error process log message line

@@ -4,12 +4,16 @@
 #include <string.h>
 #include <pthread.h>
 #include "comms.h"
+#include "dhcp_event.h"
+#include "mud_manager.h"
+
+
 char message_buffer[256];
 pthread_mutex_t message_mutex = PTHREAD_MUTEX_INITIALIZER;
 char *topic;
 char *mudurl_extension = "1.3.6.1.5.5.7.1.25";
 char *mudsigner_extension = "1.3.6.1.5.5.7.1.30";
-
+DhcpEvent dhcpEvent;
 
 
 void on_connect(struct mosquitto *mosq, void *obj, int rc) {
@@ -94,14 +98,14 @@ void extract_info(char *x509_cert) {
 
     printf("Retrieving MUD file...\n");
     printf("MUD URL: %s\n", mudurl);
-    // Retrieve the MUD file using curl
-    snprintf(command, sizeof(command), "curl -s -o ./mudfile.json %s", mudurl);
-    int res = system(command);
-    if (res == 0) {
-        printf("MUD file retrieved successfully.\n");
-    } else {
-        printf("Failed to retrieve MUD file.\n");
-    }
+
+    // Update the internal dhcp data structure with the mudurl
+    dhcpEvent->mudFileURL = mudurl;
+    dhcpEvent->mudsigner = mudsigner;
+
+    executeOpenMudDhcpAction(&dhcpEvent, 1)
+
+
 
      // Free allocated memory
     free(mudurl);
@@ -169,9 +173,14 @@ void on_message(struct mosquitto *mosq, void *obj, const struct mosquitto_messag
 }
 
 
-int x509_routine() {
+int x509_routine(DhcpEvent *dhcpEvent) {
     struct mosquitto *mosq;
     int rc;
+
+    // Initialize the x509_mode's internal dhcp data structure with the value that was passed in
+    // so that this can be a global variable seen by all functions in this file
+    dhcpEvent = *dhcpEvent;
+
 
     mosquitto_lib_init();
 

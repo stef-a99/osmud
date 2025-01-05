@@ -255,7 +255,7 @@ int executeMudWithDhcpContext(DhcpEvent *dhcpEvent)
  * 2) parses the MUD file into a OSMUD data structure representing the MUD file
  * 3) Calls the device specific implementations to implement the features in the mud file
  */
-void executeNewDhcpAction(DhcpEvent *dhcpEvent)
+void executeNewDhcpAction(DhcpEvent *dhcpEvent, int mode)
 {
 	char logMsgBuf[4096];
 	buildDhcpEventContext(logMsgBuf, "NEW", dhcpEvent);
@@ -282,7 +282,7 @@ void executeNewDhcpAction(DhcpEvent *dhcpEvent)
 
 				logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_MUD_FILE, "IN ****NEW**** MUD and SIG FILE RETRIEVED!!!");
 
-				if ((validateMudFileWithSig(dhcpEvent) == VALID_MUD_FILE_SIG)
+				if ((validateMudFileWithSig(dhcpEvent, mode) == VALID_MUD_FILE_SIG)
 					|| (noFailOnMudValidation))
 				{
 					/*
@@ -345,13 +345,12 @@ void executeDelDhcpAction(DhcpEvent *dhcpEvent)
 }
 
 
-void
-executeOpenMudDhcpAction(DhcpEvent *dhcpEvent)
+void executeOpenMudDhcpAction(DhcpEvent *dhcpEvent, int mode)
 {
 	if (dhcpEvent) {
 		switch (dhcpEvent->action) {
 			case NEW: dhcpNewEventCount++;
-						executeNewDhcpAction(dhcpEvent);
+						executeNewDhcpAction(dhcpEvent, mode);
 						break;
 			case OLD: dhcpOldEventCount++;
 						executeOldDhcpAction(dhcpEvent);

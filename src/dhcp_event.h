@@ -31,18 +31,19 @@ typedef struct {
 	char *mudSigURL;
 	char *mudFileStorageLocation;
 	char *mudSigFileStorageLocation;
+	char *mudsigner;
 } DhcpEvent;
 
 void executeOpenMudDhcpAction(DhcpEvent *event);
 const char* getDhcpEventText(DHCP_ACTIONS actionClass);
 DHCP_ACTIONS getDhcpEventActionClass(char *);
-int processDhcpEventFromLog(char *logMessage, DhcpEvent *dhcpEvent);
+int processDhcpEventFromLog(char *logMessage, DhcpEvent *dhcpEvent, int mode);
 void clearDhcpEventRecord(DhcpEvent *dhcpEvent);
 char *createSigUrlFromMudUrl(char *mudFileURL);
 char *createStorageLocation(char *mudURL);
-int validateMudFileWithSig(DhcpEvent *dhcpEvent);
+int validateMudFileWithSig(DhcpEvent *dhcpEvent, int mode);
 void doDhcpLegacyAction(DhcpEvent *dhcpEvent);
 void buildDhcpEventContext(char *logMsgBuf, char *action, DhcpEvent *dhcpEvent);
-
+int mudSignerVerify (char *mudsigner, char *location)
 
 #endif
