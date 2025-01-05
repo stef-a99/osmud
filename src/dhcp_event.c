@@ -104,8 +104,10 @@ int mudSignerVerify (char *mudsigner, char *location){
 
 	// TODO: verify if it works
 	char command[256];
+	// checks if the mudsigner is the issuer of the mudsignature
 	sprintf(command, "openssl x509 -in %s -noout -issuer | grep -q \"%s\"", location, mudsigner);
 	int result = system(command);
+	// if not, returns 1
 	if (result != 0) {
 		return 1;
 	}
