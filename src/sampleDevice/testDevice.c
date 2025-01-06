@@ -35,6 +35,7 @@
 #include "../oms_messages.h"
 #include "testDevice.h"
 
+#define BUFSIZE 2048
 /*
  * This uses the blocking call system() to run a shell script. This is for testing only
  */
