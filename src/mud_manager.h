@@ -53,6 +53,7 @@ int commitAndApplyFirewallRules();
 int rollbackFirewallConfiguration();
 /* END Device Specific Prototypes */
 
+void executeOpenMudDhcpAction(DhcpEvent *dhcpEvent, int mode);
 
 DomainResolutions *resolveDnsEntryToIp(char *hostname);
 void freeDnsInfo(DomainResolutions *dnsInfo);
