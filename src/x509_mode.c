@@ -179,7 +179,7 @@ int x509_routine(DhcpEvent *dhcpEvent) {
 
     // Initialize the x509_mode's internal dhcp data structure with the value that was passed in
     // so that this can be a global variable seen by all functions in this file
-    dhcpEvent = *dhcpEvent;
+    memcpy(&dhcpEvent, dhcpEvent, sizeof(DhcpEvent));
 
 
     mosquitto_lib_init();
