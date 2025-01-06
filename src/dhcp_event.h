@@ -44,6 +44,6 @@ char *createStorageLocation(char *mudURL);
 int validateMudFileWithSig(DhcpEvent *dhcpEvent, int mode);
 void doDhcpLegacyAction(DhcpEvent *dhcpEvent);
 void buildDhcpEventContext(char *logMsgBuf, char *action, DhcpEvent *dhcpEvent);
-int mudSignerVerify (char *mudsigner, char *location)
+int mudSignerVerify (char *mudsigner, char *location);
 
 #endif
