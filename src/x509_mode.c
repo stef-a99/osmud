@@ -6,7 +6,9 @@
 #include "comms.h"
 #include "dhcp_event.h"
 #include "mud_manager.h"
-
+#include "oms_messages.h"
+#include "oms_utils.h"
+#include "mudparser.h"
 
 char message_buffer[256];
 pthread_mutex_t message_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -103,6 +105,7 @@ void extract_info(char *x509_cert) {
     dhcpEventPriv.mudFileURL = mudurl;
     dhcpEventPriv.mudsigner = mudsigner;
 
+    // Execute executeOpenMudDhcpAction with the updated dhcpEventPriv
     executeOpenMudDhcpAction(&dhcpEventPriv, 1);
 
 
