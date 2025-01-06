@@ -34,7 +34,7 @@ typedef struct {
 	char *mudsigner;
 } DhcpEvent;
 
-void executeOpenMudDhcpAction(DhcpEvent *event);
+void executeOpenMudDhcpAction(DhcpEvent *event, int mode);
 const char* getDhcpEventText(DHCP_ACTIONS actionClass);
 DHCP_ACTIONS getDhcpEventActionClass(char *);
 int processDhcpEventFromLog(char *logMessage, DhcpEvent *dhcpEvent, int mode);

@@ -196,7 +196,7 @@ processDhcpEventFromLog(char *logMessage, DhcpEvent *dhcpEvent, int mode)
 		if ((array[6] != NULL) && (strlen(array[6]) > 1)) {
 			dhcpEvent->mudFileURL = array[6];
 		} else {
-			if ((mode == 0 &&) (array[6] == NULL)) {
+			if ((mode == 0 ) && (array[6] == NULL)) {
 				dhcpEvent->mudFileURL = array[6];
 			}
 		}
@@ -221,6 +221,7 @@ clearDhcpEventRecord(DhcpEvent *dhcpEvent)
 	safe_free(dhcpEvent->mudSigURL);
 	safe_free(dhcpEvent->mudFileStorageLocation);
 	safe_free(dhcpEvent->mudSigFileStorageLocation);
+	safe_free(dhcpEvent->mudsigner);
 
 	dhcpEvent->action = NONE;
 	dhcpEvent->date = NULL;
@@ -233,4 +234,5 @@ clearDhcpEventRecord(DhcpEvent *dhcpEvent)
 	dhcpEvent->mudSigURL = NULL;
 	dhcpEvent->mudFileStorageLocation = NULL;
 	dhcpEvent->mudSigFileStorageLocation = NULL;
+	dhcpEvent->mudsigner = NULL;
 }

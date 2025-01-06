@@ -100,10 +100,10 @@ void extract_info(char *x509_cert) {
     printf("MUD URL: %s\n", mudurl);
 
     // Update the internal dhcp data structure with the mudurl
-    dhcpEvent->mudFileURL = mudurl;
-    dhcpEvent->mudsigner = mudsigner;
+    dhcpEvent.mudFileURL = mudurl;
+    dhcpEvent.mudsigner = mudsigner;
 
-    executeOpenMudDhcpAction(&dhcpEvent, 1)
+    executeOpenMudDhcpAction(&dhcpEvent, 1);
 
 
 
