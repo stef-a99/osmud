@@ -13,7 +13,7 @@ pthread_mutex_t message_mutex = PTHREAD_MUTEX_INITIALIZER;
 char *topic;
 char *mudurl_extension = "1.3.6.1.5.5.7.1.25";
 char *mudsigner_extension = "1.3.6.1.5.5.7.1.30";
-DhcpEvent dhcpEvent;
+DhcpEvent dhcpEventPriv;
 
 
 void on_connect(struct mosquitto *mosq, void *obj, int rc) {
@@ -100,10 +100,10 @@ void extract_info(char *x509_cert) {
     printf("MUD URL: %s\n", mudurl);
 
     // Update the internal dhcp data structure with the mudurl
-    dhcpEvent.mudFileURL = mudurl;
-    dhcpEvent.mudsigner = mudsigner;
+    dhcpEventPriv.mudFileURL = mudurl;
+    dhcpEventPriv.mudsigner = mudsigner;
 
-    executeOpenMudDhcpAction(&dhcpEvent, 1);
+    executeOpenMudDhcpAction(&dhcpEventPriv, 1);
 
 
 
@@ -179,8 +179,7 @@ int x509_routine(DhcpEvent *dhcpEvent) {
 
     // Initialize the x509_mode's internal dhcp data structure with the value that was passed in
     // so that this can be a global variable seen by all functions in this file
-    memcpy(&dhcpEvent, dhcpEvent, sizeof(DhcpEvent));
-
+    dhcpEventPriv = *dhcpEvent;
 
     mosquitto_lib_init();
 
