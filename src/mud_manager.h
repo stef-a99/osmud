@@ -18,6 +18,7 @@
 
 #include "json-c/json.h"
 #include "mudparser.h"
+#include "dhcp_event.h"
 
 #define LAN_DEVICE_NAME "lan"
 #define WAN_DEVICE_NAME "wan"
