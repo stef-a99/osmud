@@ -5,6 +5,8 @@
 #include <pthread.h>
 #include "dhcp_event.h"
 #include "mud_manager.h"
+#include "mudparser.h"
+
 
 char message_buffer[256];
 pthread_mutex_t message_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -95,13 +97,12 @@ void extract_info(char *x509_cert) {
     }
 
     printf("Retrieving MUD file...\n");
-    printf("MUD URL: %s\n", mudurl);
 
     // Update the internal dhcp data structure with the mudurl
     dhcpEventPriv.mudFileURL = mudurl;
     dhcpEventPriv.mudsigner = mudsigner;
 
-    
+    executeOpenMudDhcpAction(&dhcpEventPriv, 1);
 
 
 
