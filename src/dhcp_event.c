@@ -79,8 +79,8 @@ int validateMudFileWithSig(DhcpEvent *dhcpEvent, int mode)
 {
 	int validSig = -1; /* Indicates invalid signature. 0 = valid sig, non-zero is specific signature validation error */
 	logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "IN ****NEW**** validateMudFileWithSig()");
-
-	if (mode == 0) {
+	validSig = verifyCmsSignature(dhcpEvent->mudFileStorageLocation, dhcpEvent->mudSigFileStorageLocation);
+	/*&if (mode == 0) {
 		// DHCP implementation
 		validSig = verifyCmsSignature(dhcpEvent->mudFileStorageLocation, dhcpEvent->mudSigFileStorageLocation);
 	} else {
@@ -92,7 +92,7 @@ int validateMudFileWithSig(DhcpEvent *dhcpEvent, int mode)
 			validSig = 1;
 		}
 
-	}
+	}*/
 
 	return validSig;
 }
