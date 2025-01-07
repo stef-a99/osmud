@@ -400,13 +400,15 @@ int main(int argc, char* argv[])
     }
 
 
+	doProcessLoop(filed);
+	
 	// Close stdin. stdout and stderr
 	close(STDIN_FILENO);
 	// For logging purposes we will leave them opened
 	// close(STDOUT_FILENO);
 	// close(STDERR_FILENO);
 
-	doProcessLoop(filed);
+	
 
 	close(filed);
 	fclose(logger);
