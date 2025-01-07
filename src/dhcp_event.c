@@ -75,16 +75,46 @@ void doDhcpLegacyAction(DhcpEvent *dhcpEvent)
 	logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "IN ****NEW**** doDhcpLegacyAction()");
 }
 
-int validateMudFileWithSig(DhcpEvent *dhcpEvent)
+int validateMudFileWithSig(DhcpEvent *dhcpEvent, int mode)
 {
 	int validSig = -1; /* Indicates invalid signature. 0 = valid sig, non-zero is specific signature validation error */
-
 	logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "IN ****NEW**** validateMudFileWithSig()");
 
-	validSig = verifyCmsSignature(dhcpEvent->mudFileStorageLocation, dhcpEvent->mudSigFileStorageLocation);
+	if (mode == 0) {
+		// DHCP implementation
+		validSig = verifyCmsSignature(dhcpEvent->mudFileStorageLocation, dhcpEvent->mudSigFileStorageLocation);
+	} else {
+		// x509 implementation
+		// valideSig will be 0 if verifyCmsSignature returns "OK" and the mudsigner verifies the mudsignature
+		if ((verifyCmsSignature(dhcpEvent->mudFileStorageLocation, dhcpEvent->mudSigFileStorageLocation) == 0) && (mudSignerVerify(dhcpEvent->mudsigner, dhcpEvent->mudSigFileStorageLocation) == 0)) {
+			validSig = 0;
+		} else {
+			validSig = 1;
+		}
+
+	}
 
 	return validSig;
 }
+
+int mudSignerVerify (char *mudsigner, char *location){
+	// verifies that the mudsigner is the subject of the mudsignature
+	// returns 0 if the mudsigner is the subject of the mudsignature
+	// returns 1 if the mudsigner is not the subject of the mudsignature
+
+	// TODO: verify if it works
+	char command[256];
+	// checks if the mudsigner is the issuer of the mudsignature
+	sprintf(command, "openssl x509 -in %s -noout -issuer | grep -q \"%s\"", location, mudsigner);
+	int result = system(command);
+	// if not, returns 1
+	if (result != 0) {
+		return 1;
+	}
+
+	return 0;
+}
+
 
 const char*
 getDhcpEventText(DHCP_ACTIONS actionClass)
