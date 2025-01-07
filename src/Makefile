@@ -20,7 +20,7 @@ all: osmud
 # We make use of these variables in the package manifest
 CC = gcc
 CFLAGS = -Wall -g -std=c99 -D_XOPEN_SOURCE=600 -DDEBUG
-LDFLAGS = -ljson-c -lcurl
+LDFLAGS = -ljson-c -lcurl -L/usr/lib/x86_64-linux-gnu/libmosquitto.so -pthread
 CFLAGSCONF = `pkg-config --cflags glib-2.0`
 LDFLAGSCONF = `pkg-config --libs glib-2.0`
 RULES_DIR = rules
@@ -61,11 +61,11 @@ linux.o:     	config.o router-machine/linux.c
 	$(CC) $(CFLAGS) $(CFLAGSCONF)  router-machine/linux.c -c -o linux.o
 
 osmud:	 osmud.o comms.o oms_utils.o oms_logging.o dhcp_event.o openwrt.o mudparser.o mud_manager.o version.o
-	$(CC) $(CFLAGS) $(LDFLAGS) osmud.o comms.o oms_utils.o oms_logging.o dhcp_event.o openwrt.o mudparser.o mud_manager.o version.o -o osmud -ljson-c -lcurl
+	$(CC) $(CFLAGS) $(LDFLAGS) osmud.o comms.o oms_utils.o oms_logging.o dhcp_event.o openwrt.o mudparser.o mud_manager.o version.o x509_mode.o -o osmud -ljson-c -lcurl -pthread -lmosquitto
 
 osmud-generic:	 osmud.o comms.o oms_utils.o oms_logging.o dhcp_event.o config.o linux.o mudparser.o mud_manager.o version.o
 	@ mkdir -p $(RULES_DIR)
-	$(CC) $(CFLAGS) $(CFLAGSCONF) $(LDFLAGS)  osmud.o comms.o oms_utils.o oms_logging.o dhcp_event.o config.o linux.o mudparser.o mud_manager.o version.o -o osmud -ljson-c -lcurl $(LDFLAGSCONF)
+	$(CC) $(CFLAGS) $(CFLAGSCONF) $(LDFLAGS)  osmud.o comms.o oms_utils.o oms_logging.o dhcp_event.o config.o linux.o mudparser.o mud_manager.o version.o x509_mode.o -o osmud -ljson-c -lcurl $(LDFLAGSCONF)
  
 # To clean build artifacts, we specify a 'clean' rule, and use PHONY to indicate that this rule never matches with a potential file in the directory
 .PHONY: clean
