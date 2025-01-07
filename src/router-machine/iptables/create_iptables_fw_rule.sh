@@ -59,52 +59,52 @@ while getopts 'ht:p:s:i:a:d:j:b:n:f:c:r:m:' option; do
 done
 
 
-if [[ -z "${TARGET/ //}" ]]; then
+if [[ -z "${TARGET// /}" ]]; then
     echo -e "ERROR: Plese specify target firewall action [ACCEPT|REJECT|DENY]!\n"
     exit 1
 fi
 
-if [[ -z "${HOST_NAME/ //}" ]]; then
+if [[ -z "${HOST_NAME// /}" ]]; then
     echo -e "ERROR: Plese specify target device host name action!\n"
     exit 1
 fi
 
-if [[ -z "${FAMILY/ //}" ]]; then
+if [[ -z "${FAMILY// /}" ]]; then
     echo -e "ERROR: Plese specify firewall protocol family [ipv4|ipv6|all]!\n"
     exit 1
 fi
 
-if [[ -z "${PROTO/ //}" ]]; then
+if [[ -z "${PROTO// /}" ]]; then
     echo -e "ERROR: Plese specify protocol [tcp|udp|all].\n"
     exit 1
 fi
 
-if [[ -z "${SRC/ //}" ]]; then
+if [[ -z "${SRC// /}" ]]; then
     echo -e "ERROR: Plese specify source zone!\n"
     exit 1
 fi
 
-if [[ -z "${SRC_IP/ //}" ]]; then
+if [[ -z "${SRC_IP// /}" ]]; then
     echo -e "ERROR: Please specify source ip!\n"
     exit 1
 fi
 
-if [[ -z "${SRC_PORT/ //}" ]]; then
+if [[ -z "${SRC_PORT// /}" ]]; then
     echo -e "ERROR: Please specify source port or 'any'.\n"
     exit 1
 fi
 
-if [[ -z "${DEST/ //}" ]]; then
+if [[ -z "${DEST// /}" ]]; then
     echo -e "ERROR: Plese specify dest zone!\n"
     exit 1
 fi
 
-if [[ -z "${DEST_IP/ //}" ]]; then
+if [[ -z "${DEST_IP// /}" ]]; then
     echo -e "ERROR: Please specify dest ip or 'any'.\n"
     exit 1
 fi
 
-if [[ -z "${DEST_PORT/ //}" ]]; then
+if [[ -z "${DEST_PORT// /}" ]]; then
     echo "ERROR: Please specify dest port or 'any'\n"
     exit 1
 fi
@@ -172,7 +172,7 @@ CHAIN="FORWARD" # First chain: checking packet and byte rate and jump to the nex
 MUD_CHAIN="MUD_CHAIN" # Second chain accept or drop the traffic
 
 # Create mudfile chain, if exists, redirect the error on /dev/null
-iptables -N $MUD_CHAIN > /dev/null 2>&1
+iptables-nft -N $MUD_CHAIN > /dev/null 2>&1
 
 
 IP_ADDRESSES=""
@@ -190,9 +190,9 @@ fi
 
 # Defining the IP protocol
 if [ "${FAMILY}" = "ipv6" ]; then
-    IPTABLES_RULE="ip6tables"
+    IPTABLES_RULE="ip6tables-nft"
 else
-    IPTABLES_RULE="iptables"
+    IPTABLES_RULE="iptables-nft"
 fi
 
 # Source ip address
@@ -205,20 +205,20 @@ if [ $? -eq 1 -a "${SRC}" != "wan" ]; then
     ${IPTABLES_RULE} -A ${CHAIN} ${IP_ADDRESSES} -j ${MUD_CHAIN}
 fi
 
-if [ ${DEST_IP} != 'any' ]; then
+if [ "${DEST_IP}" != 'any' ]; then
     IP_ADDRESSES="${IP_ADDRESSES} -d ${DEST_IP}"
     MODES="$MODES,dstip"
 fi
 
 
 # Defining packet rate for outgoing packets from that SRC
-if  [ -n "${PACKET_RATE/ //}" -a "${PACKET_RATE}" != '(null)' ]; then
+if  [ -n "${PACKET_RATE// /}" -a "${PACKET_RATE}" != '(null)' ]; then
     # By default the initial burst limit is set to 5 + packetrate
     BURST_LIMIT=`expr 5 + $(echo $PACKET_RATE | awk -F/ '{print $1}')`
     
     # Default rate per seconds
     RATE=$(echo ${PACKET_RATE} | awk -F/ '{print $2}')
-    if [[ -z "${RATE/ //}" ]]; then
+    if [[ -z "${RATE// /}" ]]; then
         RATE="/second"
     else
         RATE=""
@@ -228,7 +228,7 @@ if  [ -n "${PACKET_RATE/ //}" -a "${PACKET_RATE}" != '(null)' ]; then
 fi
 
 # Defining byte rate
-if  [ -n "${BYTE_RATE/ //}" -a "${BYTE_RATE}" != '(null)' ] ; then
+if  [ -n "${BYTE_RATE// /}" -a "${BYTE_RATE}" != '(null)' ] ; then
     
     # Converting rate in sec (Now even the unit is converted in byte)
     convertRateInSec
