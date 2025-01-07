@@ -118,7 +118,8 @@ getDhcpEventActionClass(char *dhcpAction)
 	return actionClass;
 }
 
-int processDhcpEventFromLog(char *logMessage, DhcpEvent *dhcpEvent)
+int
+processDhcpEventFromLog(char *logMessage, DhcpEvent *dhcpEvent, int mode)
 {
 	/*
 	 * Format: Fields are PIPE delimited! This matches up to the "detect_new_devices.sh" script
@@ -165,6 +166,10 @@ int processDhcpEventFromLog(char *logMessage, DhcpEvent *dhcpEvent)
 		dhcpEvent->mudFileURL = NULL;
 		if ((array[6] != NULL) && (strlen(array[6]) > 1)) {
 			dhcpEvent->mudFileURL = array[6];
+		} else {
+			if ((mode == 0 ) && (array[6] == NULL)) {
+				dhcpEvent->mudFileURL = array[6];
+			}
 		}
 	} else {
 		retval = 0; //error process log message line
@@ -187,6 +192,8 @@ clearDhcpEventRecord(DhcpEvent *dhcpEvent)
 	safe_free(dhcpEvent->mudSigURL);
 	safe_free(dhcpEvent->mudFileStorageLocation);
 	safe_free(dhcpEvent->mudSigFileStorageLocation);
+	safe_free(dhcpEvent->mudsigner);
+
 
 	dhcpEvent->action = NONE;
 	dhcpEvent->date = NULL;

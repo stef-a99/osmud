@@ -31,12 +31,14 @@
 #include "dhcp_event.h"
 #include "mud_manager.h"
 #include "version.h"
+#include "x509_mode.h"
 
 #define MAXLINE 1024
 
 /* Default locations for osMUD resources based on OpenWRT */
 #define MUD_FILE_DIRECTORY "/var/state/osmud/mudfiles"
-#define BASECONFIGFILE "/etc/osmud.conf"
+#define IFACECONFIGFILE "etc/osmud_interface.conf" // Interface Support
+#define BASECONFIGFILE "/etc/osmud.conf" 
 #define DHCP_EVENT_FILE "/var/log/dhcpmasq.txt"
 #define PID_FILE "/var/run/osmud.pid"
 #define OSMUD_LOG_FILE "/var/log/osmud.log"
@@ -46,17 +48,20 @@ typedef int FD;
 char *dnsWhiteListFile = (char *)0;
 char *mudFileDataDirectory = (char *)0;
 char *osmudConfigFile = (char *)0;
+char *ifaceConfigFile = (char *)0;
 char *dhcpEventFile = (char *)0;
 char *osmudPidFile = (char *)0;
 char *osMudLogFile = (char *)0;
+char *ebpfPath = (char *)0;
 int noFailOnMudValidation = 0;
 
 int heartBeatCycle = 0; /* how many polling cycles have passed in this interval period*/
 int heartBeatLogInterval = 720; /* Every x cycles, trigger the heartbeat log - 1 hour */
 int sleepTimeout = 5; /* how log to sleep between polling the event file - in seconds */
-int x509Mode = 0;	// 0 = DHCP, 1 = X509
+int x509Mode = 0; // 0 = DHCP: 1 = X509
 
-int readLine(char *buffer, int maxLineLength, int fd)
+int
+readLine(char *buffer, int maxLineLength, int fd)
 {
     int bytes_read;
     int k = 0;
@@ -128,7 +133,7 @@ void dumpStatsToLog()
 	logOmsGeneralMessage(OMS_INFO, OMS_SUBSYS_GENERAL, messageBuf);
 }
 
-void doProcessLoop(FD filed, int mode)
+void doProcessLoop(FD filed)
 {
 	char dhcpEventLine[MAXLINE];
 	DhcpEvent dhcpEvent;
@@ -143,58 +148,47 @@ void doProcessLoop(FD filed, int mode)
 	dhcpEvent.mudSigURL = NULL;
 	dhcpEvent.mudFileStorageLocation = NULL;
 	dhcpEvent.mudSigFileStorageLocation = NULL;
-	int actionResult, retval = 0;
+	dhcpEvent.mudsigner = NULL;
 
-	if (mode == 1)
+	while (1)
 	{
-		// x509 stuff
-		actionResult = x509_routine(&dhcpEvent);
-		if (actionResult) {
-			logOmsGeneralMessage(OMS_CRIT, OMS_SUBSYS_DEVICE_INTERFACE, "Problems with x509 routine.");
-			retval = 1;
-		}
-	}
-	else
-	{
-		logOmsGeneralMessage(OMS_INFO, OMS_SUBSYS_GENERAL, "Starting osMUD in DHCP mode");
-		while (1)
-		{
-				
-			int hhh;
-			
-			//Dont block context switches, let the process sleep for some time
-			sleep(sleepTimeout);
-			if ((hhh = pollDhcpFile(dhcpEventLine, MAXLINE, filed))) {
-				logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Executing on dhcpmasq info");
-				if (processDhcpEventFromLog(dhcpEventLine, &dhcpEvent))
-				{
+		//Dont block context switches, let the process sleep for some time
+		sleep(sleepTimeout);
+
+		int hhh;
+		if ((hhh = pollDhcpFile(dhcpEventLine, MAXLINE, filed))) {
+			logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Executing on dhcpmasq info");
+			if (processDhcpEventFromLog(dhcpEventLine, &dhcpEvent, x509Mode))
+			{
+				if (x509Mode == 0){
 					// There is a valid DHCP event to process
-					executeOpenMudDhcpAction(&dhcpEvent, mode);
+					executeOpenMudDhcpAction(&dhcpEvent, x509Mode);
 				}
-				else
-				{
-					logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Will not process DHCP event - invalid message format.... sleeping for 5...");
+				else {
+					// We are working with the X509 implementation
+					x509_routine(&dhcpEvent);
 				}
 			}
-			#if 0
-					else {
-						logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Logging no data read.... sleeping for 5...");
-					}
-			#endif
+			else
+			{
+				logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Will not process DHCP event - invalid message format.... sleeping for 5...");
+			}
 		}
-		
-			clearDhcpEventRecord(&dhcpEvent);
-			if (heartBeatCycle++ > heartBeatLogInterval) {
-				dumpStatsToLog();
-				heartBeatCycle = 0;
-			}
+#if 0
+		else {
+			logOmsGeneralMessage(OMS_DEBUG, OMS_SUBSYS_GENERAL, "Logging no data read.... sleeping for 5...");
+		}
+#endif
+
+		// Clear variables for next iteration
+		clearDhcpEventRecord(&dhcpEvent);
+
+		if (heartBeatCycle++ > heartBeatLogInterval) {
+			dumpStatsToLog();
+			heartBeatCycle = 0;
+		}
 	}
-		
 }
-
-// x509 stuff start
-
-// X509 stuff end
 
 void printVersion()
 {
@@ -217,7 +211,9 @@ void printHelp()
 	printf("    -C: switch to x509 implementation instead of the DHCP one\n");
 	printf("    -b <MUD file storage data directory>: set the directory path for MUD file storage\n");
 	printf("    -c <osMUD config file>: set the directory path and file for osMUD startup configuration file\n");
+	printf("    -z <osMUD interface config file>: set the directory path for interface configuration file (ebpf)\n");
 	printf("    -l <osMUD logfile>: set the osMUD logger path and file for system event logging.\n");
+	printf("    -s tells to the MUD manager the ebpf script path (this feature is available only on Linux devices as alternative to the iptables)\n");
 	printf("    -v: display osmud version information and exit\n");
 }
 
@@ -225,6 +221,7 @@ void checkForDefaults() {
 	if (!dnsWhiteListFile) dnsWhiteListFile = copystring(DNS_FILE_NAME_WITH_PATH);
 	if (!mudFileDataDirectory) mudFileDataDirectory = copystring(MUD_FILE_DIRECTORY);
 	if (!osmudConfigFile) osmudConfigFile = copystring(BASECONFIGFILE);
+	if (!ifaceConfigFile) ifaceConfigFile = copystring(IFACECONFIGFILE);
 	if (!dhcpEventFile) dhcpEventFile = copystring(DHCP_EVENT_FILE);
 	if (!osmudPidFile) osmudPidFile = copystring(PID_FILE);
 	if (!osMudLogFile) osMudLogFile = copystring(OSMUD_LOG_FILE);
@@ -268,7 +265,10 @@ void logInitialSettings()
 	sprintf(msgBuf, "    MUD file storage directory: %s", mudFileDataDirectory);
 	logOmsGeneralMessage(OMS_INFO, OMS_SUBSYS_GENERAL, msgBuf);
 
-	sprintf(msgBuf, "    sMUD startup configuration file: %s", osmudConfigFile);
+	sprintf(msgBuf, "    osMUD startup configuration file: %s", osmudConfigFile);
+	logOmsGeneralMessage(OMS_INFO, OMS_SUBSYS_GENERAL, msgBuf);
+
+	sprintf(msgBuf, "    osMUD interface configuration file: %s", ifaceConfigFile);
 	logOmsGeneralMessage(OMS_INFO, OMS_SUBSYS_GENERAL, msgBuf);
 
 	sprintf(msgBuf, "    osMUD logger path and file: %s", osMudLogFile);
@@ -287,7 +287,7 @@ int main(int argc, char* argv[])
     char *osLogLevel = NULL;
 
 	//TODO: Need option for logFileName, logToConsole, eventFileWithPath, logLevel (INFO|WARN|DEBUG)
-    while ((opt = getopt(argc, argv, "vidhkxC:e:w:b:c:l:m:")) != -1) {
+    while ((opt = getopt(argc, argv, "vidhkxC:e:w:b:c:l:m:s:")) != -1) {
         switch (opt) {
         case 'd':       debugMode = 1;
         				break;
@@ -317,7 +317,11 @@ int main(int argc, char* argv[])
 						break;
 		case 'm':		osLogLevel = copystring(optarg);
 						break;
-        default:
+        case 's':		ebpfPath = copystring(optarg);
+						break;
+		case 'z':		ifaceConfigFile = copystring(optarg);
+						break;			
+		default:
             printHelp(); /* If you find an unknown option, do not start up */
             exit(EXIT_FAILURE);
         }
@@ -359,7 +363,6 @@ int main(int argc, char* argv[])
     if ((debugMode) || (foregroundMode))
     {
   		printf("Running OSMUD in the foreground... <cntrl-c> to terminate\n");
-		printf("x509Mode: %d\n", x509Mode);
     }
     else
     {
@@ -396,14 +399,14 @@ int main(int argc, char* argv[])
 		chdir("/tmp");
     }
 
-	doProcessLoop(filed, x509Mode);
 
 	// Close stdin. stdout and stderr
 	close(STDIN_FILENO);
-	close(STDOUT_FILENO);
-	close(STDERR_FILENO);
+	// For logging purposes we will leave them opened
+	// close(STDOUT_FILENO);
+	// close(STDERR_FILENO);
 
-	
+	doProcessLoop(filed);
 
 	close(filed);
 	fclose(logger);

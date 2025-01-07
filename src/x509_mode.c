@@ -3,13 +3,17 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
+#include "dhcp_event.h"
+#include "mud_manager.h"
+#include "mudparser.h"
+
 
 char message_buffer[256];
 pthread_mutex_t message_mutex = PTHREAD_MUTEX_INITIALIZER;
 char *topic;
 char *mudurl_extension = "1.3.6.1.5.5.7.1.25";
 char *mudsigner_extension = "1.3.6.1.5.5.7.1.30";
-
+DhcpEvent dhcpEventPriv;
 
 
 void on_connect(struct mosquitto *mosq, void *obj, int rc) {
@@ -57,18 +61,19 @@ char *info_detection(char *command, char *extension) {
 
 }
 
-char *clean_string(char *str){
-    if (str[0] == '.' && str[1] == '"') {
+char *clean_string(char *str) {
+    if (str[0] == '.' && (str[1] == '"' || str[1] == '.')) {
         memmove(str, str + 2, strlen(str) - 1);
     }
 
     return str;
-
 }
 
-void extract_mud_info(char *x509_cert) {
+
+void extract_info(char *x509_cert) {
     // Executes the command to retrieve the MUD URL from the certificate
     char command[512];
+    int rescurl = 0;
     snprintf(command, sizeof(command), "openssl x509 -in %s -noout -text | grep -A1 %s | tail -n1 | awk '{$1=$1;print}'", x509_cert, mudurl_extension);
 
     // Stores the MUD URL in a variable
@@ -90,9 +95,23 @@ void extract_mud_info(char *x509_cert) {
         mudsigner = clean_string(mudsigner);
         printf("Extracted MUD signer: %s\n", mudsigner);
     }
+
+    printf("Retrieving MUD file...\n");
+
+    // Update the internal dhcp data structure with the mudurl
+    dhcpEventPriv.mudFileURL = mudurl;
+    dhcpEventPriv.mudsigner = mudsigner;
+
+    executeOpenMudDhcpAction(&dhcpEventPriv, 1);
+
+
+
      // Free allocated memory
     free(mudurl);
     free(mudsigner); 
+
+    // Execute executeOpenMudDhcpAction with the updated dhcpEventPriv
+    executeOpenMudDhcpAction(&dhcpEventPriv, 1);
 }
 
 void *manage_certificate(void *msg) {
@@ -134,7 +153,7 @@ void *manage_certificate(void *msg) {
 
     if (valid) {
         printf("Certificate is valid.\n");
-        extract_mud_info(filename);
+        extract_info(filename);
     } else {
         printf("Certificate is not valid.\n");
     }
@@ -156,9 +175,13 @@ void on_message(struct mosquitto *mosq, void *obj, const struct mosquitto_messag
 }
 
 
-int main(int argc, char *argv[]) {
+int x509_routine(DhcpEvent *dhcpEvent) {
     struct mosquitto *mosq;
     int rc;
+
+    // Initialize the x509_mode's internal dhcp data structure with the value that was passed in
+    // so that this can be a global variable seen by all functions in this file
+    dhcpEventPriv = *dhcpEvent;
 
     mosquitto_lib_init();
 
@@ -168,18 +191,18 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    mosquitto_connect_callback_set(mosq, on_connect);
+    mosquitto_message_callback_set(mosq, on_message);
+
     rc = mosquitto_connect(mosq, "mqttbroker", 1883, 60);
     if(rc != MOSQ_ERR_SUCCESS) {
         fprintf(stderr, "Unable to connect (%d).\n", rc);
         return 1;
     }
 
-    mosquitto_connect_callback_set(mosq, on_connect);
-    mosquitto_message_callback_set(mosq, on_message);
+    mosquitto_loop_start(mosq);
 
     
-
-    mosquitto_loop_start(mosq);
 
     // Wait for a message to be received
     printf("Press Enter to exit...\n");

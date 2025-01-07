@@ -63,7 +63,7 @@ char *getActionString(const char *mudAction)
 	} else if (!strcmpi(mudAction, "accept")) {
 		return "ACCEPT";
 	} else {
-		return "DENY";
+		return "DENY"; // TODO: change with DROP
 	}
 }
 
@@ -81,13 +81,13 @@ char *getProtocolFamily(const char *aclType)
 	}
 }
 
-int installFirewallIPRule(char *srcIp, char *destIp, char *destPort, char *srcDevice,
-		char *destDevice, char *protocol, char *ruleName, char *fwAction, char *aclType,
-		char *hostName)
+int installFirewallIPRule(char *srcIp, char *destIp, char *port, char *srcDevice, char *destDevice, 
+	char *protocol, char *packetRate, char *byteRate, char *ruleName, char *fwAction, 
+	char *aclType, char* hostName)
 {
 	char execBuf[BUFSIZE];
 	int retval;
-
+	// Packet rate feature not supported by the script
 	/* TODO: We need to turn srcDevice and destDevice into the real values on the router */
 	/*       by default they are "lan" and "wan" but can be changed. You can find this   */
 	/*       with command "uci show dhcp.lan.interface" ==> dhcp.lan.interface='lan'     */
@@ -95,7 +95,7 @@ int installFirewallIPRule(char *srcIp, char *destIp, char *destPort, char *srcDe
 	/*       EX: uci show dhcp.lan.interface | awk -F = '{print $2}'                     */
 	/* NOTE: Currently we are not restricting by source-port. If needed, add this as an arg */
 	snprintf(execBuf, BUFSIZE, "%s -s %s -d %s -i %s -a any -j %s -b %s -p %s -n %s -t %s -f %s -c %s", UCI_FIREWALL_SCRIPT, srcDevice, destDevice, srcIp,
-			destIp, destPort, getProtocolName(protocol),
+			destIp, port, getProtocolName(protocol),
 			ruleName,
 			getActionString(fwAction),
 			getProtocolFamily(aclType),
