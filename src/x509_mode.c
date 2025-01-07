@@ -109,9 +109,6 @@ void extract_info(char *x509_cert) {
      // Free allocated memory
     free(mudurl);
     free(mudsigner); 
-
-    // Execute executeOpenMudDhcpAction with the updated dhcpEventPriv
-    executeOpenMudDhcpAction(&dhcpEventPriv, 1);
 }
 
 void *manage_certificate(void *msg) {
