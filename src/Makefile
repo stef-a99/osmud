@@ -20,7 +20,7 @@ all: osmud
 # We make use of these variables in the package manifest
 CC = gcc
 CFLAGS = -Wall -g -std=c99 -D_XOPEN_SOURCE=600 -DDEBUG
-LDFLAGS = -ljson-c -lcurl -L/usr/lib/x86_64-linux-gnu/libmosquitto.so -pthread
+LDFLAGS = -ljson-c -lcurl -lmosquitto -pthread
 CFLAGSCONF = `pkg-config --cflags glib-2.0`
 LDFLAGSCONF = `pkg-config --libs glib-2.0`
 RULES_DIR = rules
