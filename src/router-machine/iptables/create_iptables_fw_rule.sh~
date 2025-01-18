@@ -172,8 +172,7 @@ CHAIN="FORWARD" # First chain: checking packet and byte rate and jump to the nex
 MUD_CHAIN="MUD_CHAIN" # Second chain accept or drop the traffic
 
 # Create mudfile chain, if exists, redirect the error on /dev/null
-#iptables -N $MUD_CHAIN > /dev/null 2>&1
-iptables -L $MUD_CHAIN >/dev/null 2>&1 || iptables -N $MUD_CHAIN
+iptables -N $MUD_CHAIN > /dev/null 2>&1
 
 
 IP_ADDRESSES=""

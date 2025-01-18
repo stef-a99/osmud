@@ -19,7 +19,7 @@ all: osmud
 # These variables hold the name of the compilation tool, the compilation flags and the link flags
 # We make use of these variables in the package manifest
 CC = gcc
-CFLAGS = -Wall -g -std=c99 -D_XOPEN_SOURCE=600 -DDEBUG -fsanitize=address
+CFLAGS = -Wall -g -std=c99 -D_XOPEN_SOURCE=600 -DDEBUG
 LDFLAGS = -ljson-c -lcurl -L/usr/lib/x86_64-linux-gnu/libmosquitto.so -pthread
 CFLAGSCONF = `pkg-config --cflags glib-2.0`
 LDFLAGSCONF = `pkg-config --libs glib-2.0`

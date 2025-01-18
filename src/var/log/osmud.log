@@ -1,0 +1,9 @@
+2025-00-14 19:37:23 INFO::GENERAL::  Starting OSMUD controlling with initial settings:
+2025-00-14 19:37:23 INFO::GENERAL::    PID FILE: /var/run/osmud.pid
+2025-00-14 19:37:23 INFO::GENERAL::    DHCP event file: /var/log/dhcpmasq.txt
+2025-00-14 19:37:23 INFO::GENERAL::    DNS white-list file: /tmp/osmud/dnswhitelist
+2025-00-14 19:37:23 INFO::GENERAL::    MUD file storage directory: /tmp/osmud/mudfiles
+2025-00-14 19:37:23 INFO::GENERAL::    osMUD startup configuration file: /etc/osmud.conf
+2025-00-14 19:37:23 INFO::GENERAL::    osMUD interface configuration file: etc/osmud_interface.conf
+2025-00-14 19:37:23 INFO::GENERAL::    osMUD logger path and file: var/log/osmud.log
+2025-00-14 19:37:28 INFO::GENERAL::NEW Device Action: IP: 192.168.56.46, MAC: 08:00:27:37:63:21

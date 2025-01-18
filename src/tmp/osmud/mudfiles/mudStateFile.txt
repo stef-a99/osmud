@@ -1,0 +1,14 @@
+10.0.12.1|f8:dc:7a:01:9c:3a|https://mudfs.example.com/pi4.json|tmp/osmud/mudfiles/pi4.json|machine
+10.0.12.1|f8:dc:7a:01:9c:3a|https://mudfs.example.com/pi4.json|tmp/osmud/mudfiles/pi4.json|machine
+10.0.12.1|f8:dc:7a:01:9c:3a|https://mudfs.example.com/pi4.json|tmp/osmud/mudfiles/pi4.json|machine
+10.0.12.1|f8:dc:7a:01:9c:3a|https://mudfs.example.com/pi4.json|tmp/osmud/mudfiles/pi4.json|machine
+10.0.12.1|f8:dc:7a:01:9c:3a|https://mudfs.example.com/pi4.json|tmp/osmud/mudfiles/pi4.json|machine
+10.0.12.1|f8:dc:7a:01:9c:3a|https://mudfs.example.com/pi4.json|tmp/osmud/mudfiles/pi4.json|machine
+10.0.12.1|f8:dc:7a:01:9c:3a|https://mudfs.example.com/pi4.json|tmp/osmud/mudfiles/pi4.json|machine
+10.0.12.1|f8:dc:7a:01:9c:3a|https://mudfs.example.com/pi4.json|tmp/osmud/mudfiles/pi4.json|machine
+10.0.12.1|f8:dc:7a:01:9c:3a|https://mudfs.example.com/pi4.json|tmp/osmud/mudfiles/pi4.json|machine
+10.0.12.1|f8:dc:7a:01:9c:3a|https://mudfs.example.com/pi4.json|tmp/osmud/mudfiles/pi4.json|machine
+10.0.12.1|f8:dc:7a:01:9c:3a|https://mudfs.example.com/pi4.json|tmp/osmud/mudfiles/pi4.json|machine
+10.0.12.1|f8:dc:7a:01:9c:3a|https://mudfs.example.com/pi4.json|tmp/osmud/mudfiles/pi4.json|machine
+10.0.12.1|f8:dc:7a:01:9c:3a|https://mudfs.example.com/pi4.json|tmp/osmud/mudfiles/pi4.json|machine
+10.0.12.1|f8:dc:7a:01:9c:3a|https://mudfs.example.com/pi4.json|tmp/osmud/mudfiles/pi4.json|machine

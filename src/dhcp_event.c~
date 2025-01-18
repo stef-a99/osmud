@@ -53,11 +53,11 @@ char *createStorageLocation(char *mudURL)
 	if ((fileName = basename(mudURL)) == NULL)
 		return NULL;
 
-	if ((fullPath = safe_malloc(strlen (mudFileDataDirectory) + strlen(fileName) + 2)) == NULL)
+	if ((fullPath = safe_malloc(strlen (mudFileDataDirectory) + strlen(fileName) + 1)) == NULL)
 		return NULL;
 
-	// Usa snprintf per maggiore sicurezza
-    	snprintf(fullPath, strlen(mudFileDataDirectory) + strlen(fileName) + 2, "%s/%s", mudFileDataDirectory, fileName);
+	sprintf(fullPath, "%s/%s", mudFileDataDirectory, fileName);
+
 	return fullPath;
 }
 

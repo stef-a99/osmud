@@ -60,7 +60,6 @@ int getOpenMudFile(char *mudFile, char *outputFile)
 	curlData.data = 1;
 
     curl_easy_setopt(curl, CURLOPT_URL, mudFile);
-    curl_easy_setopt(curl, CURLOPT_CAINFO, "/etc/ssl/certs/cacert.pem");
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &curlData);
 
