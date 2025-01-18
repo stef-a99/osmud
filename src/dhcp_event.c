@@ -197,7 +197,7 @@ processDhcpEventFromLog(char *logMessage, DhcpEvent *dhcpEvent, int mode)
 		if ((array[6] != NULL) && (strlen(array[6]) > 1)) {
 			dhcpEvent->mudFileURL = array[6];
 		} else {
-			if ((mode == 0 ) && (array[6] == NULL)) {
+			if ((mode == 1 ) && (array[6] == NULL)) {
 				dhcpEvent->mudFileURL = array[6];
 			}
 		}
