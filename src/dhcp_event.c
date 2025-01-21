@@ -197,8 +197,19 @@ processDhcpEventFromLog(char *logMessage, DhcpEvent *dhcpEvent, int mode)
 		if ((array[6] != NULL) && (strlen(array[6]) > 1)) {
 			dhcpEvent->mudFileURL = array[6];
 		} else {
-			if ((mode == 0 ) && (array[6] == NULL)) {
+			if ((mode == 1) && (array[6] == NULL)) {
 				dhcpEvent->mudFileURL = array[6];
+				/*In x509 mode, the MUDURL in the dhcpmasq.txt file
+				will be null. So, when osmud finds it, it will allow
+				the device to communicate only with the broker
+				*/ 
+				if (dhcpEvent->ipAddress) {
+					char command[256];
+					sprintf(command, "iptables -A OUTPUT -s %s -d mqttbroker -j ACCEPT", dhcpEvent->ipAddress);
+					system(command);
+					sprintf(command, "iptables -A OUTPUT -s %s -j DROP", dhcpEvent->ipAddress);
+					system(command);
+				}
 			}
 		}
 	} else {
