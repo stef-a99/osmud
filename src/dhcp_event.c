@@ -197,7 +197,7 @@ processDhcpEventFromLog(char *logMessage, DhcpEvent *dhcpEvent, int mode)
 		if ((array[6] != NULL) && (strlen(array[6]) > 1)) {
 			dhcpEvent->mudFileURL = array[6];
 		} else {
-			if ((mode == 1) && (array[6] == "-")) {
+			if (mode == 1) {
 				dhcpEvent->mudFileURL = array[6];
 				/*In x509 mode, the MUDURL in the dhcpmasq.txt file
 				will be null. So, when osmud finds it, it will allow
