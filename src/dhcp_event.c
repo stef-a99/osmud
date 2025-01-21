@@ -205,13 +205,14 @@ processDhcpEventFromLog(char *logMessage, DhcpEvent *dhcpEvent, int mode)
 				*/ 
 				if (dhcpEvent->ipAddress) {
 					char command[256];
-					sprintf(command, "iptables -A FORWARD -s %s -d mqttbroker -j ACCEPT", dhcpEvent->ipAddress);
+					sprintf(command, "iptables -A FORWARD -s %s -d mqttbroker -j ACCEPT", array[9]);
 					system(command);
-					sprintf(command, "iptables -A FORWARD -s %s -j DROP", dhcpEvent->ipAddress);
+					sprintf(command, "iptables -A FORWARD -s %s -j DROP", array[9]);
 					system(command);
 				}
 			}
 		}
+		
 	} else {
 		retval = 0; //error process log message line
 	}
