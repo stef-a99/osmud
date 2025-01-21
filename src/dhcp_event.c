@@ -205,9 +205,9 @@ processDhcpEventFromLog(char *logMessage, DhcpEvent *dhcpEvent, int mode)
 				*/ 
 				if (dhcpEvent->ipAddress) {
 					char command[256];
-					sprintf(command, "iptables -A OUTPUT -s %s -d mqttbroker -j ACCEPT", dhcpEvent->ipAddress);
+					sprintf(command, "iptables -A FORWARD -s %s -d mqttbroker -j ACCEPT", dhcpEvent->ipAddress);
 					system(command);
-					sprintf(command, "iptables -A OUTPUT -s %s -j DROP", dhcpEvent->ipAddress);
+					sprintf(command, "iptables -A FORWARD -s %s -j DROP", dhcpEvent->ipAddress);
 					system(command);
 				}
 			}

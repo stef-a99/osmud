@@ -133,6 +133,11 @@ void *manage_certificate(void *msg) {
 
     if (valid) {
         printf("Certificate is valid.\n");
+        char command[256];
+		sprintf(command, "iptables -D FORWARD -s %s -d mqttbroker -j ACCEPT", dhcpEventPriv.ipAddress);
+		system(command);
+		sprintf(command, "iptables -D FORWARD -s %s -j DROP", dhcpEventPriv.ipAddress);
+	    system(command);
         extract_info(filename);
     } else {
         printf("Certificate is not valid.\n");
