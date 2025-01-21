@@ -203,13 +203,12 @@ processDhcpEventFromLog(char *logMessage, DhcpEvent *dhcpEvent, int mode)
 				will be null. So, when osmud finds it, it will allow
 				the device to communicate only with the broker
 				*/ 
-				if (dhcpEvent->ipAddress) {
-					char command[256];
-					sprintf(command, "iptables -A FORWARD -s %s -d mqttbroker -j ACCEPT", array[9]);
-					system(command);
-					sprintf(command, "iptables -A FORWARD -s %s -j DROP", array[9]);
-					system(command);
-				}
+			
+				char command[256];
+				sprintf(command, "iptables -A FORWARD -s %s -d mqttbroker -j ACCEPT", array[9]);
+				system(command);
+				sprintf(command, "iptables -A FORWARD -s %s -j DROP", array[9]);
+				system(command);
 			}
 		}
 		
